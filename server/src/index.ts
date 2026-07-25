@@ -60,6 +60,34 @@ app.get("/api/health", (_req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
+// ── 临时诊断：列出 public 目录文件 ──
+app.get("/api/debug/files", (_req, res) => {
+  const walk = (dir: string, prefix = ""): string[] => {
+    if (!fs.existsSync(dir)) return [];
+    const entries = fs.readdirSync(dir, { withFileTypes: true });
+    return entries.flatMap((entry) => {
+      const fullPath = path.join(dir, entry.name);
+      const relPath = prefix ? `${prefix}/${entry.name}` : entry.name;
+      if (entry.isDirectory()) return walk(fullPath, relPath);
+      return relPath;
+    });
+  };
+  try {
+    const files = walk(staticDir);
+    res.json({
+      staticDir,
+      exists: fs.existsSync(staticDir),
+      totalFiles: files.length,
+      sample: files.slice(0, 50),
+      xiaoyaoFiles: files.filter((f) => f.includes("xiaoyao/")),
+      logoFiles: files.filter((f) => f.includes("logo/")),
+      stageFiles: files.filter((f) => f.includes("stages/")),
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ── 路由挂载 ──
 app.use("/api/auth", authRouter);
 app.use("/api/employees", employeeRouter);
