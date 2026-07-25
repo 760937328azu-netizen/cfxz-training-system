@@ -10,6 +10,9 @@ WORKDIR /app/frontend
 COPY package*.json ./
 RUN npm ci
 COPY . .
+RUN ls -la public/ && ls -la public/xiaoyao/ || echo "NO_XIAOYAO_DIR"
+RUN ls -la public/xiaoyao/transparent/ || echo "NO_TRANSPARENT_DIR"
+RUN cat .dockerignore
 RUN npm run build
 
 # ---- Stage 2: 构建后端 ----
