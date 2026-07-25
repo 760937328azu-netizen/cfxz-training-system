@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>长发小寨培训系统 — 正式上线报告</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:#F9F6F0;color:#3A3530;line-height:1.7}
+.header{background:linear-gradient(135deg,#B0453A,#8B3528);color:#fff;padding:48px 32px;text-align:center}
+.header h1{font-size:28px;font-weight:700;margin-bottom:8px}
+.header .meta{font-size:14px;opacity:.8}
+.container{max-width:960px;margin:0 auto;padding:32px 24px 64px}
+.section{background:#fff;border-radius:16px;padding:32px;margin-bottom:24px;border:1px solid #E8E0D5}
+.section h2{font-size:20px;color:#B0453A;margin-bottom:16px;padding-bottom:12px;border-bottom:2px solid #F0E8DD}
+.section h3{font-size:16px;color:#5A5650;margin:20px 0 10px}
+.section p{margin-bottom:12px;font-size:14px}
+table{width:100%;border-collapse:collapse;margin:12px 0;font-size:13px}
+th{background:#F5F0E8;padding:10px 14px;text-align:left;font-weight:600;color:#5A5650;border-bottom:2px solid #E8E0D5}
+td{padding:10px 14px;border-bottom:1px solid #F0E8DD;vertical-align:top}
+td code{background:#F5F0E8;padding:2px 6px;border-radius:4px;font-size:12px}
+.code{background:#2D2A26;color:#E8E0D5;padding:12px 16px;border-radius:8px;font-family:monospace;font-size:13px;overflow-x:auto;margin:8px 0;white-space:pre}
+.checklist{list-style:none;padding:0}
+.checklist li{padding:8px 0 8px 28px;position:relative;font-size:14px;border-bottom:1px solid #F5F0E8}
+.checklist li::before{content:"✅";position:absolute;left:0}
+.warn{background:#FFF3CD;border-left:4px solid #FFC107;padding:12px 16px;border-radius:8px;margin:12px 0;font-size:14px}
+.success{background:#D4EDDA;border-left:4px solid #28A745;padding:12px 16px;border-radius:8px;margin:12px 0;font-size:14px}
+.footer{text-align:center;padding:32px;color:#8A8580;font-size:13px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0}
+.card{padding:20px;border-radius:12px;border:2px solid}
+.card.ok{border-color:#28A745;background:#F0FFF4}
+.card.warn{border-color:#FFC107;background:#FFFEF0}
+.card h4{font-size:15px;margin-bottom:8px}
+.card.ok h4{color:#155724}.card.warn h4{color:#856404}
+.card ul{list-style:none;padding:0}
+.card li{font-size:13px;margin-bottom:4px;padding-left:18px;position:relative}
+.card.ok li::before{content:"✅";position:absolute;left:0}
+.card.warn li::before{content:"⚠️";position:absolute;left:0}
+</style>
+</head>
+<body>
+<div class="header">
+<h1>长发小寨培训系统 V2.0 — 正式上线报告</h1>
+<p class="meta">生成时间：2026-07-25 | 版本：Production Ready v1.0</p>
+</div>
+<div class="container">
+
+<div class="section">
+<h2>1. 当前系统状态总览</h2>
+<div class="grid2">
+<div class="card ok"><h4>已完成（本地验证通过）</h4><ul>
+<li>前端构建成功（React+Vite+TS）</li>
+<li>后端构建成功（Express+Prisma+TS）</li>
+<li>生产环境统一构建验证通过</li>
+<li>Supabase PostgreSQL 连通正常</li>
+<li>11 张数据库表已建表初始化</li>
+<li>管理员账号创建并修改密码</li>
+<li>认证题库已初始化</li>
+<li>安全加固（限流/错误处理/CORS）</li>
+<li>测试员工已删除</li>
+<li>Moka Webhook 路由已就绪</li>
+<li>Dockerfile+Railway 配置已准备</li>
+<li>Git 仓库已初始化并提交</li>
+</ul></div>
+<div class="card warn"><h4>待完成（需手动操作）</h4><ul>
+<li>推送代码到 GitHub</li>
+<li>在 Railway 创建项目并部署</li>
+<li>配置生产环境变量（7 项必填）</li>
+<li>获取 Railway 分配的 HTTPS 域名</li>
+<li>更新 CORS_ORIGINS 为正式域名</li>
+<li>执行跨设备真实验收测试</li>
+<li>Moka 开放平台配置 Webhook</li>
+</ul></div>
+</div>
+<div class="warn"><strong>当前定位：</strong>本地开发环境全链路验证通过，生产部署配置已准备就绪，等待用户执行公网部署操作。</div>
+</div>
+
+<div class="section">
+<h2>2. 系统架构图</h2>
+<div class="code">用户 (PC/手机/平板)
+  │ HTTPS
+  ▼
+┌──────────────────────────────────────┐
+│  Node.js Express 服务 (端口 4000)     │
+│  ┌────────────┐  ┌─────────────────┐ │
+│  │ 前端静态文件 │  │ 后端 API 路由    │ │
+│  │ (React SPA)│  │ /api/auth/*     │ │
+│  │ /*→index   │  │ /api/employees/*│ │
+│  │ (SPA回退)  │  │ /api/progress/* │ │
+│  └────────────┘  │ /api/moka/*     │ │
+│                  │ /api/dashboard/*│ │
+│  中间件: Helmet+CORS+限流+JWT认证    │ │
+└──────────┬───────────────────────────┘
+           │ Prisma ORM (Session Pooler:5432)
+           ▼
+┌──────────────────────────────────────┐
+│  Supabase PostgreSQL                 │
+│  Schema: training                    │
+│  11 张表                             │
+└──────────────────────────────────────┘</div>
+<table>
+<tr><th>层</th><th>技术</th><th>说明</th></tr>
+<tr><td>前端</td><td>React 18 + Vite 8 + TypeScript + Tailwind CSS v4</td><td>构建为静态文件，由 Express 托管</td></tr>
+<tr><td>后端</td><td>Express 4 + Prisma 6 + TypeScript</td><td>统一处理 API 和静态文件</td></tr>
+<tr><td>数据库</td><td>PostgreSQL (Supabase)</td><td>Session Pooler 运行时 + Direct 迁移</td></tr>
+<tr><td>认证</td><td>JWT (7天) + bcrypt (12轮)</td><td>双轨：员工 token + 管理员 token</td></tr>
+<tr><td>安全</td><td>Helmet + CORS + express-rate-limit</td><td>登录限流 15min/10次 + 全局 100次/min</td></tr>
+</table>
+</div>
+
+<div class="section">
+<h2>3. 数据库 11 张表结构说明</h2>
+<table>
+<thead><tr><th>#</th><th>表名</th><th>用途</th><th>关键字段</th><th>前端对应</th></tr></thead>
+<tbody>
+<tr><td>1</td><td><code>users</code></td><td>员工（新人）</td><td>id, name, phone(登录账号), department, position, passwordHash, status, dataSource(manual/moka)</td><td>LoginPage / Admin 员工管理</td></tr>
+<tr><td>2</td><td><code>admin_users</code></td><td>管理员</td><td>id, name, username, passwordHash, role(super/viewer), status</td><td>Admin 登录</td></tr>
+<tr><td>3</td><td><code>training_batches</code></td><td>培训批次</td><td>id, name, startDate, deadline, status(active/closed)</td><td>Admin 批次管理</td></tr>
+<tr><td>4</td><td><code>learning_progress</code></td><td>学习进度总表</td><td>userId, currentStage, lastSection, learningWorldUnlocked</td><td>首页成长地图</td></tr>
+<tr><td>5</td><td><code>stage_progress</code></td><td>关卡进度</td><td>userId, stageId, status(pending/in_progress/completed), completedExhibits[]</td><td>各关卡完成状态</td></tr>
+<tr><td>6</td><td><code>game_progress</code></td><td>第五关游戏进度</td><td>userId, gameKey(rocketBoss/valueMatch/valueCatch/quiz), completed, gameData</td><td>第五关游戏大厅</td></tr>
+<tr><td>7</td><td><code>certification_attempts</code></td><td>认证考试记录</td><td>userId, score(0-100), passed, answers(JSON), weakAreas[]</td><td>第六关认证考试</td></tr>
+<tr><td>8</td><td><code>learning_events</code></td><td>学习事件流水</td><td>userId, eventType(login/stage_complete/game_complete/cert_submit...)</td><td>Admin 数据看板</td></tr>
+<tr><td>9</td><td><code>moka_sync_events</code></td><td>Moka 同步事件</td><td>eventType, mokaEmployeeId, payload, status(pending/processed/failed)</td><td>Admin Moka 日志</td></tr>
+<tr><td>10</td><td><code>admin_operation_logs</code></td><td>管理员操作日志</td><td>adminId, adminName, action, targetType, targetId, details</td><td>Admin 操作审计</td></tr>
+<tr><td>11</td><td><code>question_bank</code></td><td>认证题库</td><td>version, questions(JSON), isActive</td><td>第六关认证抽题</td></tr>
+</tbody>
+</table>
+<div class="success">数据库连接：运行时 Session Pooler(5432, connection_limit=5)，迁移用 Direct Connection。Prisma withRetry 3 次指数退避。</div>
+</div>
+
+<div class="section">
+<h2>4. API 接口清单（30+ 端点）</h2>
+<table>
+<thead><tr><th>模块</th><th>方法</th><th>路径</th><th>认证</th><th>说明</th></tr></thead>
+<tbody>
+<tr><td>认证</td><td>POST</td><td><code>/api/auth/employee/login</code></td><td>限流</td><td>员工登录</td></tr>
+<tr><td></td><td>POST</td><td><code>/api/auth/admin/login</code></td><td>限流</td><td>管理员登录</td></tr>
+<tr><td></td><td>GET</td><td><code>/api/auth/me</code></td><td>JWT</td><td>获取当前用户</td></tr>
+<tr><td></td><td>POST</td><td><code>/api/auth/change-password</code></td><td>JWT</td><td>修改密码</td></tr>
+<tr><td>员工</td><td>GET/POST/PUT/DELETE</td><td><code>/api/employees[/:id]</code></td><td>Admin</td><td>CRUD + 批量创建</td></tr>
+<tr><td>进度</td><td>GET/PUT</td><td><code>/api/progress[/stage|/game]</code></td><td>JWT</td><td>获取/更新学习进度</td></tr>
+<tr><td>认证</td><td>GET/POST</td><td><code>/api/certification/questions|/submit</code></td><td>JWT</td><td>认证考试</td></tr>
+<tr><td>批次</td><td>GET/POST/PUT</td><td><code>/api/batches[/:id]</code></td><td>Admin</td><td>批次管理</td></tr>
+<tr><td>后台</td><td>GET/POST</td><td><code>/api/admin/stats|/logs|/users</code></td><td>Admin</td><td>数据看板/日志/管理员</td></tr>
+<tr><td>Moka</td><td>POST</td><td><code>/api/moka/webhook</code></td><td>签名</td><td>Webhook（兼容路径）</td></tr>
+<tr><td></td><td>POST</td><td><code>/api/integrations/moka/webhooks/employee-onboard</code></td><td>签名</td><td>Webhook（标准路径）</td></tr>
+<tr><td>导出</td><td>GET</td><td><code>/api/export/progress|/certification</code></td><td>Admin</td><td>数据导出 CSV/JSON</td></tr>
+<tr><td>看板</td><td>GET</td><td><code>/api/dashboard/overview|/trends</code></td><td>Admin</td><td>总览/趋势</td></tr>
+<tr><td>健康</td><td>GET</td><td><code>/api/health</code></td><td>无</td><td>服务健康检查</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="section">
+<h2>5. 生产安全配置清单</h2>
+<ul class="checklist">
+<li>密钥只在后端 env — JWT_SECRET、DATABASE_URL 只在 server/.env</li>
+<li>.env 不提交仓库 — .gitignore 已排除所有 .env 文件</li>
+<li>前端不含密钥 — 仅通过 /api 相对路径访问</li>
+<li>CORS 限制 — CORS_ORIGINS 环境变量控制</li>
+<li>权限后端校验 — authenticate + requireAdmin + requireSuper</li>
+<li>关闭错误堆栈 — 生产环境返回通用错误消息</li>
+<li>登录限流 — 15 分钟 10 次，超限返回 429</li>
+<li>全局 API 限流 — 每分钟 100 次</li>
+<li>Helmet 安全头 — XSS 防护/点击劫持防护/CSP</li>
+<li>JWT 7 天过期 + bcrypt 12 轮哈希</li>
+<li>Seed 密码检查 — 生产环境禁止默认密码</li>
+</ul>
+</div>
+
+<div class="section">
+<h2>6. localStorage Key 审计</h2>
+<table>
+<thead><tr><th>Key</th><th>用途</th><th>是否数据源</th></tr></thead>
+<tbody>
+<tr><td><code>cfxz-auth-token</code></td><td>员工 JWT Token</td><td>否（认证缓存）</td></tr>
+<tr><td><code>cfxz-admin-auth-token</code></td><td>管理员 JWT Token</td><td>否（认证缓存）</td></tr>
+<tr><td><code>cfxz-user-session</code></td><td>员工会话缓存</td><td>否（数据库为准）</td></tr>
+<tr><td><code>cfxz-admin-session</code></td><td>管理员会话缓存</td><td>否（数据库为准）</td></tr>
+<tr><td><code>cfxz-admin-store</code></td><td>后台降级模式缓存</td><td>否（API 优先）</td></tr>
+<tr><td><code>cfxz-phase3-learning-progress-v2-*</code></td><td>学习进度缓存</td><td>否（数据库为准）</td></tr>
+</tbody>
+</table>
+<div class="success">结论：所有 localStorage Key 均为缓存/会话用途，数据库为唯一数据源。</div>
+</div>
+
+<div class="section">
+<h2>7. 测试账号处理结果</h2>
+<table>
+<thead><tr><th>项目</th><th>处理前</th><th>处理后</th><th>状态</th></tr></thead>
+<tbody>
+<tr><td>测试员工 13800000001</td><td>存在</td><td>已通过 API 删除</td><td>✅</td></tr>
+<tr><td>Admin 密码</td><td>ChangeMe!2026</td><td>Cfxz!Prod#2026Secure</td><td>✅</td></tr>
+<tr><td>旧密码登录</td><td>可用</td><td>401 拒绝</td><td>✅</td></tr>
+<tr><td>JWT_SECRET</td><td>ChangeMe</td><td>64 字符随机</td><td>✅</td></tr>
+<tr><td>Seed 生产检查</td><td>无</td><td>禁止默认密码</td><td>✅</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="section">
+<h2>8. Moka 对接状态</h2>
+<table>
+<thead><tr><th>项目</th><th>状态</th><th>说明</th></tr></thead>
+<tbody>
+<tr><td>Webhook 兼容路径</td><td>✅</td><td>POST /api/moka/webhook</td></tr>
+<tr><td>Webhook 标准路径</td><td>✅</td><td>POST /api/integrations/moka/webhooks/employee-onboard</td></tr>
+<tr><td>签名验证</td><td>✅</td><td>x-moka-signature 头验证</td></tr>
+<tr><td>自动创建员工+初始化</td><td>✅</td><td>Webhook→创建员工→初始化进度→关卡→游戏</td></tr>
+<tr><td>MOKA_WEBHOOK_SECRET</td><td>⚠️ 待配置</td><td>需从 Moka 平台获取</td></tr>
+<tr><td>公网 HTTPS 地址</td><td>⚠️ 待部署</td><td>部署到 Railway 后获取</td></tr>
+</tbody>
+</table>
+<div class="warn">不要在未配置 MOKA_WEBHOOK_SECRET 的情况下宣称已接入 Moka。</div>
+</div>
+
+<div class="section">
+<h2>9. 跨设备验收方案</h2>
+<table>
+<thead><tr><th>#</th><th>测试场景</th><th>预期结果</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>设备 A Admin 创建员工</td><td>员工出现在列表</td></tr>
+<tr><td>2</td><td>设备 B 员工登录完成第一关</td><td>关卡状态 completed</td></tr>
+<tr><td>3</td><td>设备 A Admin 查看进度</td><td>显示 1/6 完成</td></tr>
+<tr><td>4</td><td>设备 C 同一员工登录</td><td>进度保持 1/6</td></tr>
+<tr><td>5</td><td>设备 A 修改部门</td><td>设备 B 刷新后同步</td></tr>
+<tr><td>6</td><td>设备 A 重置进度</td><td>设备 B 刷新后归零</td></tr>
+<tr><td>7</td><td>员工完成认证考试</td><td>Admin 可查看成绩</td></tr>
+<tr><td>8</td><td>后端重启</td><td>数据不丢失</td></tr>
+<tr><td>9</td><td>连续 11 次错误登录</td><td>第 11 次返回 429</td></tr>
+<tr><td>10</td><td>HTTPS 证书验证</td><td>浏览器显示安全锁</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="section">
+<h2>10. 下一步行动清单</h2>
+<table>
+<thead><tr><th>#</th><th>行动项</th><th>负责人</th><th>优先级</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>创建 GitHub 仓库并推送代码</td><td>用户</td><td>P0</td></tr>
+<tr><td>2</td><td>在 Railway 创建项目并部署</td><td>用户</td><td>P0</td></tr>
+<tr><td>3</td><td>配置 7 项必填环境变量</td><td>用户</td><td>P0</td></tr>
+<tr><td>4</td><td>获取 HTTPS 域名并更新 CORS_ORIGINS</td><td>用户</td><td>P0</td></tr>
+<tr><td>5</td><td>验证 /api/health 和前端页面</td><td>用户</td><td>P0</td></tr>
+<tr><td>6</td><td>执行 10 项跨设备验收测试</td><td>用户+AI</td><td>P1</td></tr>
+<tr><td>7</td><td>Moka 平台配置 Webhook 回调</td><td>用户</td><td>P2</td></tr>
+<tr><td>8</td><td>设置 MOKA_WEBHOOK_SECRET</td><td>用户</td><td>P2</td></tr>
+<tr><td>9</td><td>首批员工导入</td><td>用户</td><td>P2</td></tr>
+<tr><td>10</td><td>首次登录强制改密功能</td><td>AI</td><td>P2</td></tr>
+</tbody>
+</table>
+<div class="success">所有代码层面的准备工作已完成。部署指南详见 <code>DEPLOYMENT-GUIDE-PROD.html</code>。</div>
+</div>
+
+<div class="footer">
+<p>长发小寨培训系统 V2.0 — 正式上线报告</p>
+<p>生成时间：2026-07-25 | 报告版本：v1.0</p>
+</div>
+</div>
+</body>
+</html>

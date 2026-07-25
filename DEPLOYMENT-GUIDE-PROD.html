@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>长发小寨培训系统 — 公网部署指南</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: #F9F6F0;
+      color: #3A3530;
+      line-height: 1.7;
+      padding: 0;
+    }
+    .header {
+      background: linear-gradient(135deg, #B0453A 0%, #8B3528 100%);
+      color: white;
+      padding: 48px 32px;
+      text-align: center;
+    }
+    .header h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+    .header p { font-size: 15px; opacity: 0.85; }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 32px 24px 64px;
+    }
+    .toc {
+      background: white;
+      border-radius: 16px;
+      padding: 24px 32px;
+      margin-bottom: 32px;
+      border: 1px solid #E8E0D5;
+    }
+    .toc h2 { font-size: 16px; color: #B0453A; margin-bottom: 12px; }
+    .toc ol { padding-left: 20px; }
+    .toc li { margin-bottom: 6px; font-size: 14px; }
+    .toc a { color: #B0453A; text-decoration: none; }
+    .toc a:hover { text-decoration: underline; }
+    .section {
+      background: white;
+      border-radius: 16px;
+      padding: 32px;
+      margin-bottom: 24px;
+      border: 1px solid #E8E0D5;
+    }
+    .section h2 {
+      font-size: 20px;
+      color: #B0453A;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid #F0E8DD;
+    }
+    .section h3 {
+      font-size: 16px;
+      color: #5A5650;
+      margin: 20px 0 10px;
+    }
+    .section p { margin-bottom: 12px; font-size: 14px; }
+    .step {
+      display: flex;
+      gap: 16px;
+      margin: 16px 0;
+      padding: 16px;
+      background: #FAF7F2;
+      border-radius: 12px;
+    }
+    .step-num {
+      flex-shrink: 0;
+      width: 32px;
+      height: 32px;
+      background: #B0453A;
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 14px;
+    }
+    .step-content { flex: 1; }
+    .step-content p { margin-bottom: 8px; font-size: 14px; }
+    .code {
+      background: #2D2A26;
+      color: #E8E0D5;
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-family: "SF Mono", "Fira Code", "Cascadia Code", Consolas, monospace;
+      font-size: 13px;
+      overflow-x: auto;
+      margin: 8px 0;
+    }
+    .code .comment { color: #888; }
+    .code .key { color: #B0453A; }
+    .code .val { color: #7FB069; }
+    .warn {
+      background: #FFF3CD;
+      border-left: 4px solid #FFC107;
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin: 12px 0;
+      font-size: 14px;
+    }
+    .warn strong { color: #856404; }
+    .success {
+      background: #D4EDDA;
+      border-left: 4px solid #28A745;
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin: 12px 0;
+      font-size: 14px;
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-left: 8px;
+    }
+    .badge-recommend { background: #D4EDDA; color: #155724; }
+    .badge-alt { background: #E8E0D5; color: #5A5650; }
+    .platform-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 16px 0;
+    }
+    .platform-card {
+      padding: 20px;
+      border: 2px solid #E8E0D5;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .platform-card:hover { border-color: #B0453A; }
+    .platform-card h4 { font-size: 15px; color: #3A3530; margin-bottom: 6px; }
+    .platform-card p { font-size: 13px; color: #8A8580; margin-bottom: 0; }
+    .env-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0;
+      font-size: 13px;
+    }
+    .env-table th {
+      background: #F5F0E8;
+      padding: 10px 14px;
+      text-align: left;
+      font-weight: 600;
+      color: #5A5650;
+      border-bottom: 2px solid #E8E0D5;
+    }
+    .env-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid #F0E8DD;
+    }
+    .env-table .required { color: #B0453A; font-weight: 600; }
+    .env-table code {
+      background: #F5F0E8;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>长发小寨培训系统 — 公网部署指南</h1>
+    <p>统一部署模式：前端 + 后端在同一服务中运行</p>
+  </div>
+
+  <div class="container">
+    <!-- TOC -->
+    <div class="toc">
+      <h2>目录</h2>
+      <ol>
+        <li><a href="#overview">部署概览与架构</a></li>
+        <li><a href="#prerequisites">前置条件检查</a></li>
+        <li><a href="#platform">选择部署平台</a></li>
+        <li><a href="#github">推送代码到 GitHub</a></li>
+        <li><a href="#railway">方案 A：Railway 部署（推荐）</a></li>
+        <li><a href="#render">方案 B：Render 部署</a></li>
+        <li><a href="#vps">方案 C：VPS 服务器部署</a></li>
+        <li><a href="#env">环境变量配置清单</a></li>
+        <li><a href="#verify">部署后验证清单</a></li>
+        <li><a href="#moka">Moka Webhook 端点准备</a></li>
+        <li><a href="#troubleshoot">常见问题排查</a></li>
+      </ol>
+    </div>
+
+    <!-- 1. Overview -->
+    <div class="section" id="overview">
+      <h2>1. 部署概览与架构</h2>
+      <p>本系统采用<strong>统一部署模式</strong>：前端静态文件和后端 API 运行在同一个 Node.js 服务中。</p>
+      <div class="step">
+        <div class="step-num">✦</div>
+        <div class="step-content">
+          <p><strong>架构说明：</strong></p>
+          <p>• 用户访问 HTTPS 域名 → 平台负载均衡 → Node.js Express 服务（端口 4000）</p>
+          <p>• Express 服务同时处理：<code>/api/*</code> API 请求 + <code>/*</code> 前端静态文件</p>
+          <p>• 数据库连接：Supabase PostgreSQL（Session Pooler，端口 5432）</p>
+          <p>• 前端通过相对路径 <code>/api</code> 访问后端，无需 CORS 跨域配置</p>
+        </div>
+      </div>
+      <div class="success">
+        ✅ 生产构建已在本地验证通过：健康检查、前端 HTML 托管、SPA 路由回退均正常。
+      </div>
+    </div>
+
+    <!-- 2. Prerequisites -->
+    <div class="section" id="prerequisites">
+      <h2>2. 前置条件检查</h2>
+      <p>部署前请确认以下条件已满足：</p>
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <p><strong>Supabase 数据库</strong> — 已创建项目，已获取连接字符串</p>
+          <p>• Session Pooler URL（端口 5432，运行时用）</p>
+          <p>• Direct Connection URL（端口 5432，Prisma 迁移用）</p>
+          <p>• 数据库密码</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <p><strong>Git 仓库</strong> — 已初始化，代码已提交</p>
+          <p>• 本地 Git 仓库已创建（master 分支）</p>
+          <p>• 需要推送到 GitHub（或 GitLab/Gitee）供部署平台拉取</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <p><strong>管理员密码</strong> — 已修改为生产密码</p>
+          <p>• 默认密码 <code>ChangeMe!2026</code> 已修改为 <code>Cfxz!Prod#2026Secure</code></p>
+          <p>• 测试员工 13800000001 已删除</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Platform Selection -->
+    <div class="section" id="platform">
+      <h2>3. 选择部署平台</h2>
+      <p>以下是推荐的部署平台，根据你的网络环境和需求选择：</p>
+      <div class="platform-grid">
+        <div class="platform-card" onclick="document.getElementById('railway').scrollIntoView()">
+          <h4>Railway <span class="badge badge-recommend">推荐</span></h4>
+          <p>最简单，自动 HTTPS，Dockerfile 部署。$5/月免费额度。需 GitHub。</p>
+        </div>
+        <div class="platform-card" onclick="document.getElementById('render').scrollIntoView()">
+          <h4>Render</h4>
+          <p>免费 Starter 套餐，Dockerfile 部署。需 GitHub。美国/欧洲节点。</p>
+        </div>
+        <div class="platform-card" onclick="document.getElementById('vps').scrollIntoView()">
+          <h4>VPS 服务器</h4>
+          <p>阿里云/腾讯云 ECS，完全可控。需手动配 Nginx + SSL + PM2。</p>
+        </div>
+        <div class="platform-card">
+          <h4>Zeabur</h4>
+          <p>亚洲节点，对中国用户友好。支持 Dockerfile 部署。</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. GitHub -->
+    <div class="section" id="github">
+      <h2>4. 推送代码到 GitHub</h2>
+      <p>所有部署平台都需要通过 GitHub 仓库拉取代码。请先完成以下步骤：</p>
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <p>在 GitHub 创建新仓库（建议设为 Private）</p>
+          <p>地址：<a href="https://github.com/new" target="_blank">https://github.com/new</a></p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <p>在本地项目目录执行以下命令（替换为你的仓库地址）：</p>
+          <div class="code">cd "C:\Users\HUAWEI\WorkBuddy\新的一版培训系统 最后一版了"
+git remote add origin https://github.com/<span class="comment">你的用户名</span>/cfxz-training.git
+git branch -M main
+git push -u origin main</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <p>确认推送成功后，在 GitHub 仓库页面应能看到所有项目文件</p>
+          <div class="warn"><strong>注意：</strong>确认 <code>.env</code>、<code>server/.env</code> 文件未被推送到仓库（已在 .gitignore 中排除）</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. Railway -->
+    <div class="section" id="railway">
+      <h2>5. 方案 A：Railway 部署（推荐）</h2>
+      <p>Railway 是最简单的部署方案，自动构建、自动 HTTPS、自动健康检查。</p>
+
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <p><strong>注册 Railway 账号</strong></p>
+          <p>访问 <a href="https://railway.app" target="_blank">https://railway.app</a> → 使用 GitHub 账号登录</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <p><strong>创建新项目</strong></p>
+          <p>点击 "New Project" → "Deploy from GitHub repo" → 选择你的 <code>cfxz-training</code> 仓库</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <p><strong>配置构建</strong></p>
+          <p>Railway 会自动检测 <code>Dockerfile</code> 并使用它构建。无需额外配置。</p>
+          <p>构建过程中会自动执行：前端构建 → 后端构建 → 生成 Prisma Client → 打包生产镜像</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-content">
+          <p><strong>设置环境变量</strong></p>
+          <p>在 Railway 项目的 "Variables" 标签页中，逐项添加以下变量：</p>
+          <table class="env-table">
+            <thead><tr><th>变量名</th><th>值</th><th>说明</th></tr></thead>
+            <tbody>
+              <tr><td class="required">DATABASE_URL</td><td><code>postgresql://postgres.[ref]:[pwd]@aws-0-[region].pooler.supabase.com:5432/postgres?connection_limit=5&pool_timeout=30&schema=training</code></td><td>Supabase Session Pooler</td></tr>
+              <tr><td class="required">DIRECT_URL</td><td><code>postgresql://postgres.[ref]:[pwd]@aws-0-[region].supabase.com:5432/postgres?schema=training</code></td><td>Supabase 直连（迁移用）</td></tr>
+              <tr><td class="required">JWT_SECRET</td><td>64 字符随机字符串</td><td>JWT 签名密钥</td></tr>
+              <tr><td class="required">CORS_ORIGINS</td><td><code>https://你的应用名.up.railway.app</code></td><td>Railway 分配的域名</td></tr>
+              <tr><td>SEED_ADMIN_NAME</td><td>超级管理员</td><td>管理员名称</td></tr>
+              <tr><td>SEED_ADMIN_USERNAME</td><td>admin</td><td>管理员账号</td></tr>
+              <tr><td class="required">SEED_ADMIN_PASSWORD</td><td>Cfxz!Prod#2026Secure</td><td>管理员密码</td></tr>
+              <tr><td>NODE_ENV</td><td>production</td><td>生产环境标记</td></tr>
+              <tr><td>PORT</td><td>4000</td><td>服务端口</td></tr>
+            </tbody>
+          </table>
+          <div class="warn"><strong>注意 CORS_ORIGINS：</strong>先部署一次获取 Railway 分配的域名，再回来设置此变量。或者直接留空（允许所有来源）后部署。</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-content">
+          <p><strong>配置健康检查</strong></p>
+          <p>在 "Settings" → "Healthcheck" 中设置路径为 <code>/api/health</code></p>
+          <p>Railway 会定期检查此路径，确保服务正常运行</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">6</div>
+        <div class="step-content">
+          <p><strong>生成域名</strong></p>
+          <p>在 "Settings" → "Networking" → "Generate Domain"</p>
+          <p>Railway 会分配一个 HTTPS 域名，如：<code>https://cfxz-training.up.railway.app</code></p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">7</div>
+        <div class="step-content">
+          <p><strong>验证部署</strong></p>
+          <p>访问 <code>https://你的域名/api/health</code>，应返回：</p>
+          <div class="code">{"status":"ok","timestamp":"2026-07-25T..."}</div>
+          <p>访问 <code>https://你的域名/</code>，应看到培训系统登录页面</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6. Render -->
+    <div class="section" id="render">
+      <h2>6. 方案 B：Render 部署</h2>
+      <p>Render 提供 Free Starter 套餐，适合初期低流量场景。</p>
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <p>访问 <a href="https://render.com" target="_blank">https://render.com</a> → 注册并连接 GitHub</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <p>选择 "New" → "Blueprint" → 选择 GitHub 仓库</p>
+          <p>Render 会自动读取 <code>render.yaml</code> 配置文件</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <p>在 Render 控制台填写需要手动设置的变量（标记为 <code>sync: false</code> 的项）</p>
+          <p>变量清单与 Railway 相同，参见<a href="#env">环境变量配置清单</a></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 7. VPS -->
+    <div class="section" id="vps">
+      <h2>7. 方案 C：VPS 服务器部署</h2>
+      <p>使用阿里云/腾讯云 ECS 服务器，完全可控，适合长期生产环境。</p>
+
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <p><strong>服务器准备</strong></p>
+          <p>• 操作系统：Ubuntu 22.04 LTS</p>
+          <p>• 最低配置：2 核 CPU / 4GB 内存 / 40GB 磁盘</p>
+          <p>• 安装 Node.js 22、PM2、Nginx</p>
+          <div class="code">curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
+sudo apt-get install -y nodejs
+sudo npm install -g pm2
+sudo apt-get install -y nginx</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <p><strong>部署代码</strong></p>
+          <div class="code">cd /opt
+git clone https://github.com/<span class="comment">你的用户名</span>/cfxz-training.git
+cd cfxz-training
+npm ci
+npm run build
+cd server && npm ci && npx prisma generate && npm run build
+cp -r ../dist ./public</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <p><strong>配置环境变量</strong></p>
+          <div class="code">cd /opt/cfxz-training/server
+cp .env.example .env
+nano .env <span class="comment"># 填入生产环境变量</span></div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-content">
+          <p><strong>使用 PM2 启动服务</strong></p>
+          <div class="code">cd /opt/cfxz-training/server
+NODE_ENV=production pm2 start dist/index.js --name cfxz-training
+pm2 save
+pm2 startup <span class="comment"># 设置开机自启</span></div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-content">
+          <p><strong>配置 Nginx 反向代理 + SSL</strong></p>
+          <div class="code">server {
+    listen 80;
+    server_name your-domain.com;
+
+    location / {
+        proxy_pass http://127.0.0.1:4000;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}</div>
+          <p>使用 Certbot 配置免费 SSL 证书：</p>
+          <div class="code">sudo apt-get install certbot python3-certbot-nginx
+sudo certbot --nginx -d your-domain.com</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 8. Environment Variables -->
+    <div class="section" id="env">
+      <h2>8. 环境变量配置清单</h2>
+      <p>无论选择哪个平台，都需要配置以下环境变量：</p>
+      <table class="env-table">
+        <thead><tr><th>变量名</th><th>是否必填</th><th>说明</th></tr></thead>
+        <tbody>
+          <tr><td class="required">DATABASE_URL</td><td>必填</td><td>Supabase Session Pooler 连接串（端口 5432），运行时使用</td></tr>
+          <tr><td class="required">DIRECT_URL</td><td>必填</td><td>Supabase 直连串（端口 5432），Prisma 迁移使用</td></tr>
+          <tr><td class="required">JWT_SECRET</td><td>必填</td><td>JWT 签名密钥（64 字符随机字符串）</td></tr>
+          <tr><td class="required">CORS_ORIGINS</td><td>必填</td><td>允许的前端来源域名（部署平台的 HTTPS 域名）</td></tr>
+          <tr><td>SEED_ADMIN_NAME</td><td>选填</td><td>管理员名称（默认：超级管理员）</td></tr>
+          <tr><td>SEED_ADMIN_USERNAME</td><td>选填</td><td>管理员账号（默认：admin）</td></tr>
+          <tr><td class="required">SEED_ADMIN_PASSWORD</td><td>必填</td><td>管理员密码（禁止使用 ChangeMe!2026）</td></tr>
+          <tr><td>NODE_ENV</td><td>固定</td><td>production</td></tr>
+          <tr><td>PORT</td><td>固定</td><td>4000</td></tr>
+          <tr><td>MOKA_WEBHOOK_SECRET</td><td>后续</td><td>Moka Webhook 签名密钥（对接 Moka 时填写）</td></tr>
+        </tbody>
+      </table>
+      <div class="warn"><strong>重要：</strong>JWT_SECRET 可以从本地 <code>server/.env</code> 文件中复制，保持与本地开发环境一致可确保现有 JWT token 在生产环境仍然有效。</div>
+    </div>
+
+    <!-- 9. Verification -->
+    <div class="section" id="verify">
+      <h2>9. 部署后验证清单</h2>
+      <p>部署完成后，逐项验证以下内容：</p>
+      <div class="step"><div class="step-num">✓</div><div class="step-content"><p><strong>健康检查</strong>：访问 <code>/api/health</code> 返回 <code>{"status":"ok"}</code></p></div></div>
+      <div class="step"><div class="step-num">✓</div><div class="step-content"><p><strong>前端页面</strong>：访问根路径 <code>/</code> 显示登录页面</p></div></div>
+      <div class="step"><div class="step-num">✓</div><div class="step-content"><p><strong>管理员登录</strong>：使用 admin / 生产密码登录后台</p></div></div>
+      <div class="step"><div class="step-num">✓</div><div class="step-content"><p><strong>数据库连接</strong>：后台能查看员工列表（证明 Supabase 连通）</p></div></div>
+      <div class="step"><div class="step-num">✓</div><div class="step-content"><p><strong>HTTPS 证书</strong>：浏览器地址栏显示安全锁标志</p></div></div>
+      <div class="step"><div class="step-num">✓</div><div class="step-content"><p><strong>限流功能</strong>：连续 11 次登录失败后返回 429 状态码</p></div></div>
+      <div class="step"><div class="step-num">✓</div><div class="step-content"><p><strong>SPA 路由</strong>：直接访问 <code>/#/login</code> 等路由不会 404</p></div></div>
+    </div>
+
+    <!-- 10. Moka -->
+    <div class="section" id="moka">
+      <h2>10. Moka Webhook 端点准备</h2>
+      <p>部署完成后，系统已提供 Moka 员工入职 Webhook 端点：</p>
+      <div class="code"><span class="comment"># 当前端点路径</span>
+POST https://你的域名/api/moka/webhook
+
+<span class="comment"># 用户期望路径（后续可调整路由）</span>
+POST https://你的域名/api/integrations/moka/webhooks/employee-onboard</div>
+
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <p><strong>在 Moka 开放平台配置 Webhook</strong></p>
+          <p>• 登录 Moka 开放平台 → Webhook 管理</p>
+          <p>• 回调地址填写：<code>https://你的域名/api/moka/webhook</code></p>
+          <p>• 订阅事件：员工入职</p>
+          <p>• 获取签名密钥，填入环境变量 <code>MOKA_WEBHOOK_SECRET</code></p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <p><strong>Webhook 处理逻辑</strong></p>
+          <p>收到 Moka 员工入职事件后，系统自动：</p>
+          <p>• 创建员工账号（含初始密码）→ 初始化学习进度 → 初始化 6 关卡进度 → 初始化游戏进度</p>
+        </div>
+      </div>
+      <div class="warn"><strong>注意：</strong>不要在未配置 <code>MOKA_WEBHOOK_SECRET</code> 的情况下宣称已接入 Moka。签名验证默认开启，密钥未配置时会拒绝所有 Webhook 请求。</div>
+    </div>
+
+    <!-- 11. Troubleshooting -->
+    <div class="section" id="troubleshoot">
+      <h2>11. 常见问题排查</h2>
+
+      <h3>Q: 部署后访问页面白屏</h3>
+      <p>检查浏览器控制台是否有 404 错误。确认 Dockerfile 构建阶段的前端产物已正确复制到 <code>server/public</code> 目录。</p>
+
+      <h3>Q: API 请求返回 502 或超时</h3>
+      <p>检查环境变量 <code>DATABASE_URL</code> 是否正确。确认 Supabase 项目状态为 Active。检查 Railway/Render 日志中是否有数据库连接错误。</p>
+
+      <h3>Q: 登录返回 401</h3>
+      <p>确认 <code>JWT_SECRET</code> 与本地开发环境一致。如果不一致，所有已签发的 token 将失效，需要重新登录。</p>
+
+      <h3>Q: CORS 错误</h3>
+      <p>将 <code>CORS_ORIGINS</code> 设置为部署平台分配的 HTTPS 域名。统一部署模式下前端和后端同域，通常不会出现 CORS 问题。</p>
+
+      <h3>Q: Prisma 迁移错误</h3>
+      <p>确认 <code>DIRECT_URL</code> 使用的是 Supabase 直连地址（非 Pooler）。Prisma 迁移需要直连，不能通过连接池。</p>
+
+      <h3>Q: 构建过程中 npm install 超时</h3>
+      <p>Railway/Render 的构建服务器在海外，如果拉取 npm 包超时，可以在 <code>server/package.json</code> 中添加中国镜像。但通常平台构建服务器网络良好，不需要镜像。</p>
+    </div>
+
+    <div style="text-align: center; padding: 32px; color: #8A8580; font-size: 13px;">
+      <p>长发小寨培训系统 V2.0 — 部署指南</p>
+      <p>生成时间：2026-07-25</p>
+    </div>
+  </div>
+</body>
+</html>
