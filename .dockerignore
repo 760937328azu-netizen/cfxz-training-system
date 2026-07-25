@@ -11,3 +11,10 @@ server/.env
 .env.production
 server/.env.production
 *.local
+nul
+cert-test-shots
+check-output
+dist-build*
+dist-tmp*
+.workbuddy
+deploy-railway.sh
