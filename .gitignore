@@ -44,6 +44,5 @@ deploy.*
 # Windows reserved filenames
 nul
 
-# Screenshots and temp images
-*.png
+# Screenshots and temp images (only exclude specific cert test directories, not production assets)
 cert-test-shots/
