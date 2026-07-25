@@ -44,8 +44,8 @@ RUN npm ci --only=production && npx prisma generate
 # 复制后端编译输出
 COPY --from=backend-builder /app/server/dist ./dist
 
-# 复制前端静态文件
-COPY --from=frontend-builder /app/dist ./public
+# 复制前端静态文件（前端构建产物在 /app/frontend/dist）
+COPY --from=frontend-builder /app/frontend/dist ./public
 
 # 复制种子数据文件
 COPY --from=backend-builder /app/server/handbook-kb.json ./handbook-kb.json

@@ -40,3 +40,10 @@ scripts/output
 .workbuddy/
 *.cjs
 deploy.*
+
+# Windows reserved filenames
+nul
+
+# Screenshots and temp images
+*.png
+cert-test-shots/
