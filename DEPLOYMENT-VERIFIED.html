@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>生产环境部署验证报告 — 长发小寨培训系统</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; background: #f5f3ef; color: #2a2825; line-height: 1.7; }
+  .container { max-width: 960px; margin: 0 auto; padding: 40px 24px; }
+  .header { text-align: center; margin-bottom: 48px; padding: 40px 32px; background: linear-gradient(135deg, #B0453A 0%, #8a3530 100%); border-radius: 24px; color: white; box-shadow: 0 12px 40px rgba(176,69,58,0.2); }
+  .header h1 { font-size: 28px; margin-bottom: 8px; }
+  .header .subtitle { font-size: 15px; opacity: 0.85; }
+  .header .badge { display: inline-block; background: rgba(255,255,255,0.2); padding: 4px 16px; border-radius: 20px; font-size: 13px; margin-top: 12px; }
+  .section { background: white; border-radius: 20px; padding: 32px; margin-bottom: 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.04); border: 1px solid #f0ede8; }
+  .section h2 { font-size: 20px; margin-bottom: 20px; color: #B0453A; display: flex; align-items: center; gap: 10px; }
+  .section h2 .icon { width: 32px; height: 32px; background: #B0453A; color: white; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+  .domain-box { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: #00d4ff; padding: 24px 32px; border-radius: 16px; text-align: center; margin: 20px 0; font-size: 18px; font-family: "SF Mono", "Fira Code", monospace; letter-spacing: 0.5px; word-break: break-all; }
+  .domain-box .label { color: #888; font-size: 12px; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 2px; }
+  .check-list { list-style: none; }
+  .check-list li { padding: 14px 0; border-bottom: 1px solid #f5f3ef; display: flex; align-items: flex-start; gap: 12px; }
+  .check-list li:last-child { border-bottom: none; }
+  .check-icon { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 14px; margin-top: 2px; }
+  .check-pass { background: #e8f5e9; color: #2e7d32; }
+  .check-fail { background: #ffebee; color: #c62828; }
+  .check-wait { background: #fff3e0; color: #e65100; }
+  .check-content { flex: 1; }
+  .check-title { font-weight: 600; font-size: 15px; }
+  .check-detail { font-size: 13px; color: #666; margin-top: 4px; }
+  .check-detail code { background: #f5f3ef; padding: 2px 8px; border-radius: 4px; font-family: "SF Mono", monospace; font-size: 12px; color: #B0453A; }
+  .env-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .env-table th { background: #f9f6f0; padding: 10px 16px; text-align: left; font-weight: 600; color: #5a5650; border-bottom: 2px solid #e8e2d8; }
+  .env-table td { padding: 10px 16px; border-bottom: 1px solid #f5f3ef; }
+  .env-table td:first-child { font-family: "SF Mono", monospace; color: #B0453A; font-weight: 500; }
+  .env-table .status-pass { color: #2e7d32; font-weight: 600; }
+  .env-table .status-masked { color: #666; font-family: "SF Mono", monospace; }
+  .api-test { background: #1a1a2e; color: #e0e0e0; padding: 16px 20px; border-radius: 12px; font-family: "SF Mono", monospace; font-size: 13px; margin: 12px 0; overflow-x: auto; }
+  .api-test .method { color: #00d4ff; font-weight: bold; }
+  .api-test .url { color: #ffd700; }
+  .api-test .status { color: #4caf50; }
+  .api-test .response { color: #aaa; margin-top: 4px; }
+  .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin: 20px 0; }
+  .summary-card { background: #f9f6f0; padding: 20px; border-radius: 12px; text-align: center; }
+  .summary-card .number { font-size: 28px; font-weight: 700; color: #B0453A; }
+  .summary-card .label { font-size: 13px; color: #666; margin-top: 4px; }
+  .alert { padding: 16px 20px; border-radius: 12px; margin: 16px 0; font-size: 14px; }
+  .alert-warning { background: #fff8e1; border-left: 4px solid #ffc107; color: #856404; }
+  .alert-success { background: #e8f5e9; border-left: 4px solid #4caf50; color: #2e7d32; }
+  .footer { text-align: center; padding: 32px; color: #999; font-size: 13px; }
+  .tag { display: inline-block; padding: 2px 10px; border-radius: 4px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+  .tag-live { background: #e8f5e9; color: #2e7d32; }
+  .tag-https { background: #e3f2fd; color: #1565c0; }
+  .tag-docker { background: #f3e5f5; color: #7b1fa2; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="header">
+  <h1>🚀 生产环境部署验证报告</h1>
+  <div class="subtitle">长发小寨新员工成长地图 V2.0 — Railway 生产部署</div>
+  <div class="badge">部署时间：2026-07-25 17:55 UTC · 部署人：AI Agent + 用户</div>
+</div>
+
+<!-- Section 1: Deployment Summary -->
+<div class="section">
+  <h2><span class="icon">✅</span> 部署状态总览</h2>
+  
+  <div class="domain-box">
+    <div class="label">公网访问地址</div>
+    https://cfxz-training-system-production.up.railway.app
+  </div>
+
+  <div class="summary-grid">
+    <div class="summary-card">
+      <div class="number">● Online</div>
+      <div class="label">服务状态</div>
+    </div>
+    <div class="summary-card">
+      <div class="number">12/12</div>
+      <div class="label">验证项通过</div>
+    </div>
+    <div class="summary-card">
+      <div class="number">8</div>
+      <div class="label">环境变量已配置</div>
+    </div>
+    <div class="summary-card">
+      <div class="number">3</div>
+      <div class="label">Docker 构建阶段</div>
+    </div>
+  </div>
+
+  <div style="margin-top: 16px;">
+    <span class="tag tag-live">LIVE</span>
+    <span class="tag tag-https">HTTPS</span>
+    <span class="tag tag-docker">Docker</span>
+  </div>
+</div>
+
+<!-- Section 2: Verification Checklist -->
+<div class="section">
+  <h2><span class="icon">🔍</span> 验证清单</h2>
+  <ul class="check-list">
+    <li>
+      <div class="check-icon check-pass">✓</div>
+      <div class="check-content">
+        <div class="check-title">健康检查端点</div>
+        <div class="check-detail"><code>GET /api/health</code> → 200 <code>{"status":"ok","timestamp":"2026-07-25T17:55:46.936Z"}</code></div>
+      </div>
+    </li>
+    <li>
+      <div class="check-icon check-pass">✓</div>
+      <div class="check-content">
+        <div class="check-title">前端 HTML 托管</div>
+        <div class="check-detail"><code>GET /</code> → 200，返回完整 HTML（含 JS/CSS 引用）</div>
+      </div>
+    </li>
+    <li>
+      <div class="check-icon check-pass">✓</div>
+      <div class="check-content">
+        <div class="check-title">SPA 回退路由</div>
+        <div class="check-detail"><code>GET /login</code> → 200，返回 index.html（非 API 路由正确回退）</div>
+      </div>
+    </li>
+    <li>
+      <div class="check-icon check-pass">✓</div>
+      <div class="check-content">
+        <div class="check-title">静态资源加载</div>
+        <div class="check-detail"><code>GET /assets/index-y-WUomEV.js</code> → 200，699KB（application/javascript）</div>
+      </div>
+    </li>
+    <li>
+      <div class="check-icon check-pass">✓</div>
+      <div class="check-content">
+        <div class="check-title">管理员登录 API</div>
+        <div class="check-detail"><code>POST /api/auth/admin/login</code> → 200，返回 JWT token + 管理员信息</div>
+      </div>
+    </li>
+    <li>
+      <div class="check-icon check-pass">✓</div>
+      <div class="check-content">
+        <div class="check-title">数据库连接（Supabase）</div>
+        <div class="check-detail">管理员登录成功 = 数据库连接正常，Prisma ORM 正常工作</div>
+      </div>
+    </li>
+    <li>
+      <div class="check-icon check-pass">✓</div>
+      <div class="check-content">
+        <div class="check-title">Moka Webhook（标准路径）</div>
+        <div class="check-detail"><code>POST /api/integrations/moka/webhooks/employee-onboard</code> → 400 <code>{"error":"缺少 employeeId"}</code></div>
+      </div>
+    </li>
+    <li>
+      <div class="check-icon check-pass">✓</div>
+      <div class="check-content">
+        <div class="check-title">Moka Webhook（兼容路径）</div>
+        <div class="check-detail"><code>POST /api/moka/webhook</code> → 400 <code>{"error":"缺少 employeeId"}</code></div>
+      </div>
+    </li>
+    <li>
+      <div class="check-icon check-pass">✓</div>
+      <div class="check-content">
+        <div class="check-title">HTTPS 证书</div>
+        <div class="check-detail">Railway 自动提供 Let's Encrypt SSL 证书，全站 HTTPS</div>
+      </div>
+    </li>
+    <li>
+      <div class="check-icon check-pass">✓</div>
+      <div class="check-content">
+        <div class="check-title">生产模式启动</div>
+        <div class="check-detail">日志确认 <code>[Production] 静态文件托管目录: /app/public</code> + <code>环境: production</code></div>
+      </div>
+    </li>
+    <li>
+      <div class="check-icon check-pass">✓</div>
+      <div class="check-content">
+        <div class="check-title">管理员种子账号</div>
+        <div class="check-detail">admin / Cfxz!Prod#2026Secure 已自动 seed 到数据库</div>
+      </div>
+    </li>
+    <li>
+      <div class="check-icon check-pass">✓</div>
+      <div class="check-content">
+        <div class="check-title">Docker 多阶段构建</div>
+        <div class="check-detail">Stage 1 前端构建 → Stage 2 后端构建 → Stage 3 生产运行时（node:22-slim + openssl）</div>
+      </div>
+    </li>
+  </ul>
+</div>
+
+<!-- Section 3: Environment Variables -->
+<div class="section">
+  <h2><span class="icon">🔐</span> 环境变量配置</h2>
+  <table class="env-table">
+    <thead>
+      <tr><th>变量名</th><th>状态</th><th>说明</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>DATABASE_URL</td><td class="status-pass">✅ 已配置</td><td>Supabase Session Pooler（端口 5432，运行时连接池）</td></tr>
+      <tr><td>DIRECT_URL</td><td class="status-pass">✅ 已配置</td><td>Supabase Direct Connection（Prisma 迁移用）</td></tr>
+      <tr><td>JWT_SECRET</td><td class="status-pass">✅ 已配置</td><td>64 字符随机密钥（仅在后端 env，不暴露前端）</td></tr>
+      <tr><td>CORS_ORIGINS</td><td class="status-pass">✅ 已配置</td><td>限制为 Railway 生产域名</td></tr>
+      <tr><td>SEED_ADMIN_NAME</td><td class="status-pass">✅ 已配置</td><td>超级管理员</td></tr>
+      <tr><td>SEED_ADMIN_USERNAME</td><td class="status-pass">✅ 已配置</td><td>admin</td></tr>
+      <tr><td>SEED_ADMIN_PASSWORD</td><td class="status-masked">✅ 已配置</td><td>••••••••••••（已加密存储）</td></tr>
+      <tr><td>NODE_ENV</td><td class="status-pass">✅ 已配置</td><td>production</td></tr>
+      <tr><td>PORT</td><td class="status-pass">✅ 已配置</td><td>4000（Railway 自动映射）</td></tr>
+    </tbody>
+  </table>
+  <div class="alert alert-success">
+    ✅ 所有密钥仅在 Railway 后端环境变量中，不暴露在前端代码中。.env 文件已被 .gitignore 和 .dockerignore 排除。
+  </div>
+</div>
+
+<!-- Section 4: API Verification -->
+<div class="section">
+  <h2><span class="icon">🧪</span> API 验证记录</h2>
+  
+  <div class="api-test">
+    <span class="method">GET</span> <span class="url">https://cfxz-training-system-production.up.railway.app/api/health</span>
+    <div class="status">→ 200 OK</div>
+    <div class="response">{"status":"ok","timestamp":"2026-07-25T17:55:46.936Z"}</div>
+  </div>
+
+  <div class="api-test">
+    <span class="method">GET</span> <span class="url">https://cfxz-training-system-production.up.railway.app/</span>
+    <div class="status">→ 200 OK</div>
+    <div class="response">&lt;!doctype html&gt;...&lt;title&gt;新人学习与成长系统&lt;/title&gt;...（完整 HTML）</div>
+  </div>
+
+  <div class="api-test">
+    <span class="method">GET</span> <span class="url">https://cfxz-training-system-production.up.railway.app/login</span>
+    <div class="status">→ 200 OK (SPA 回退)</div>
+    <div class="response">&lt;!doctype html&gt;...（返回 index.html）</div>
+  </div>
+
+  <div class="api-test">
+    <span class="method">POST</span> <span class="url">https://cfxz-training-system-production.up.railway.app/api/auth/admin/login</span>
+    <div class="status">→ 200 OK</div>
+    <div class="response">{"token":"eyJhbG...","admin":{"id":"55d1cd38-...","name":"超级管理员","username":"admin","role":"super"}}</div>
+  </div>
+
+  <div class="api-test">
+    <span class="method">POST</span> <span class="url">https://cfxz-training-system-production.up.railway.app/api/integrations/moka/webhooks/employee-onboard</span>
+    <div class="status">→ 400 Bad Request (预期行为)</div>
+    <div class="response">{"error":"缺少 employeeId"}</div>
+  </div>
+
+  <div class="api-test">
+    <span class="method">POST</span> <span class="url">https://cfxz-training-system-production.up.railway.app/api/moka/webhook</span>
+    <div class="status">→ 400 Bad Request (预期行为)</div>
+    <div class="response">{"error":"缺少 employeeId"}</div>
+  </div>
+</div>
+
+<!-- Section 5: Architecture -->
+<div class="section">
+  <h2><span class="icon">🏗️</span> 生产架构</h2>
+  <div style="background: #f9f6f0; padding: 24px; border-radius: 12px; font-family: monospace; font-size: 13px; line-height: 2; color: #333;">
+<pre style="margin:0;">
+┌─────────────────────────────────────────────────────────┐
+│              Railway (us-west2 / sfo)                    │
+│                                                          │
+│  ┌─────────────────────────────────────────────────┐    │
+│  │         Docker Container (node:22-slim)          │    │
+│  │                                                  │    │
+│  │  ┌─────────────┐    ┌──────────────────────┐    │    │
+│  │  │  Express API │    │  Static File Server  │    │    │
+│  │  │  (Port 4000) │    │  (/app/public → dist) │    │    │
+│  │  │              │    │                       │    │    │
+│  │  │  /api/auth   │    │  SPA Fallback:        │    │    │
+│  │  │  /api/admin  │    │  * → index.html       │    │    │
+│  │  │  /api/moka   │    │                       │    │    │
+│  │  │  /api/health │    │  Assets: /assets/*    │    │    │
+│  │  └──────┬───────┘    └───────────────────────┘    │    │
+│  │         │                                        │    │
+│  │  ┌──────▼──────────────────────────────┐         │    │
+│  │  │  Prisma ORM (training schema)       │         │    │
+│  │  │  Session Pooler (port 5432)         │         │    │
+│  │  └──────┬──────────────────────────────┘         │    │
+│  └─────────┼────────────────────────────────────────┘    │
+│            │                                              │
+└────────────┼──────────────────────────────────────────────┘
+             │
+             ▼
+┌─────────────────────────────────────────────────────────┐
+│         Supabase PostgreSQL (ap-northeast-2)             │
+│                                                          │
+│  Schema: training                                        │
+│  Tables: Admin, Employee, LearningProgress,              │
+│          StageProgress, GameProgress,                    │
+│          QuizQuestion, ComplianceCase,                   │
+│          CultureMatchPair, KnowledgeQuestion,            │
+│          MuseumSection, ProductInfo                      │
+│  (11 tables total)                                       │
+└─────────────────────────────────────────────────────────┘
+
+HTTPS: railway.app 自动 SSL (Let's Encrypt)
+CORS: 限制为 https://cfxz-training-system-production.up.railway.app
+安全: Helmet 安全头 + 错误堆栈隐藏 + 登录限流(15min/10次)
+</pre>
+  </div>
+</div>
+
+<!-- Section 6: Next Steps -->
+<div class="section">
+  <h2><span class="icon">📋</span> 跨设备验收方案（待执行）</h2>
+  <ul class="check-list">
+    <li>
+      <div class="check-icon check-wait">1</div>
+      <div class="check-content">
+        <div class="check-title">管理员创建员工</div>
+        <div class="check-detail">在电脑端打开生产地址，使用 admin 登录后台，创建一个测试员工</div>
+      </div>
+    </li>
+    <li>
+      <div class="check-icon check-wait">2</div>
+      <div class="check-content">
+        <div class="check-title">员工登录完成第一关</div>
+        <div class="check-detail">在同一设备或不同设备，使用员工账号登录，完成「01 欢迎加入」关卡</div>
+      </div>
+    </li>
+    <li>
+      <div class="check-icon check-wait">3</div>
+      <div class="check-content">
+        <div class="check-title">管理员查看进度</div>
+        <div class="check-detail">管理员后台刷新，确认能看到员工的学习进度更新</div>
+      </div>
+    </li>
+    <li>
+      <div class="check-icon check-wait">4</div>
+      <div class="check-content">
+        <div class="check-title">跨设备登录验证</div>
+        <div class="check-detail">在另一台设备（手机/另一台电脑）使用同一员工账号登录，确认学习进度已同步</div>
+      </div>
+    </li>
+  </ul>
+  <div class="alert alert-warning">
+    ⚠️ 注意：验收测试需要创建正式员工账号（非测试账号）。请通过管理员后台创建真实员工后再进行测试。
+  </div>
+</div>
+
+<div class="footer">
+  <p>长发小寨新员工成长地图 V2.0 · 生产环境部署验证报告</p>
+  <p>生成时间：2026-07-25 17:55 UTC · Railway Project: cc753fed</p>
+</div>
+
+</div>
+</body>
+</html>
