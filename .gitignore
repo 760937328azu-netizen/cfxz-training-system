@@ -1,0 +1,42 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# 环境变量（含数据库密码和 JWT 密钥，禁止提交）
+.env
+.env.production
+server/.env
+server/.env.local
+server/.env.production
+
+# 构建输出
+server/dist
+server/public
+dist-build*
+dist-tmp*
+check-output
+scripts/output
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.workbuddy/
+*.cjs
+deploy.*

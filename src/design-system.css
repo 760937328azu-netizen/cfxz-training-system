@@ -1,0 +1,171 @@
+:root {
+  --ds-canvas: #f6f2ea;
+  --ds-surface: rgba(255, 254, 252, 0.78);
+  --ds-surface-solid: #fffefd;
+  --ds-ink: #25221f;
+  --ds-muted: #77716b;
+  --ds-brand: #b24a3e;
+  --ds-brand-deep: #432722;
+  --ds-wood: #7b513e;
+  --ds-paper: #fbf6eb;
+  --ds-moss: #82946f;
+  --ds-line: rgba(73, 61, 52, 0.105);
+  --ds-radius-sm: 12px;
+  --ds-radius-md: 20px;
+  --ds-radius-lg: 32px;
+  --ds-shadow-soft: 0 24px 60px rgba(73, 54, 42, 0.07), 0 2px 8px rgba(73, 54, 42, 0.025);
+  --ds-shadow-hover: 0 26px 65px rgba(73, 54, 42, 0.10), 0 7px 20px rgba(73, 54, 42, 0.04);
+}
+
+.app-surface {
+  border: 1px solid rgba(115, 86, 62, 0.11);
+  border-radius: var(--ds-radius-lg);
+  background:
+    radial-gradient(circle at 9% 11%, rgba(212,169,117,.055), transparent 28%),
+    linear-gradient(145deg, rgba(255,254,250,.88), rgba(249,243,232,.74));
+  box-shadow: var(--ds-shadow-soft);
+  backdrop-filter: blur(16px);
+}
+
+.app-panel {
+  border: 1px solid var(--ds-line);
+  border-radius: var(--ds-radius-md);
+  background: rgba(255, 255, 255, 0.62);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.72);
+}
+
+.app-button-primary {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 14px;
+  background: var(--ds-brand-deep);
+  padding: 0 18px;
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  transition: transform 200ms var(--ease-soft), box-shadow 200ms var(--ease-soft), background 200ms var(--ease-soft);
+}
+
+.app-button-primary:hover {
+  transform: translateY(-2px);
+  background: #513029;
+  box-shadow: 0 12px 26px rgba(67, 39, 34, 0.16);
+}
+
+.app-button-secondary {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid var(--ds-line);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.65);
+  padding: 0 16px;
+  color: var(--ds-ink);
+  font-size: 14px;
+  font-weight: 550;
+  transition: transform 200ms var(--ease-soft), background 200ms var(--ease-soft);
+}
+
+.app-button-secondary:hover {
+  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.app-button-ghost {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid transparent;
+  border-radius: 14px;
+  background: transparent;
+  padding: 0 14px;
+  color: var(--ds-muted);
+  font-size: 14px;
+  font-weight: 550;
+  transition: transform 200ms var(--ease-soft), background 200ms var(--ease-soft), color 200ms var(--ease-soft);
+}
+
+.app-button-ghost:hover {
+  background: rgba(0, 0, 0, 0.04);
+  color: var(--ds-ink);
+}
+
+.app-button-primary:disabled,
+.app-button-secondary:disabled,
+.app-button-ghost:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.page-heading {
+  margin-bottom: 28px;
+}
+
+.page-heading h2 {
+  color: var(--ds-ink);
+  font-size: clamp(28px, 2.4vw, 38px);
+  font-weight: 680;
+  letter-spacing: -0.035em;
+  line-height: 1.15;
+}
+
+.page-heading p {
+  margin-top: 9px;
+  max-width: 700px;
+  color: var(--ds-muted);
+  font-size: 15px;
+  line-height: 1.75;
+}
+
+.ambient-page {
+  position: relative;
+  isolation: isolate;
+  background-color: #f7f3ea;
+  background-image:
+    radial-gradient(circle at 1px 1px, rgba(113,86,61,.027) 1px, transparent 0),
+    linear-gradient(115deg, rgba(255,255,255,.18), transparent 42%);
+  background-size: 22px 22px, 100% 100%;
+}
+
+.ambient-page::before,
+.ambient-page::after {
+  position: fixed;
+  z-index: -1;
+  width: 38vw;
+  height: 38vw;
+  border-radius: 999px;
+  content: "";
+  filter: blur(70px);
+  pointer-events: none;
+}
+
+.ambient-page::before {
+  top: 8%;
+  right: 3%;
+  background: rgba(150, 185, 194, 0.09);
+}
+
+.ambient-page::after {
+  bottom: 0;
+  left: 8%;
+  background: rgba(211, 164, 126, 0.08);
+}
+
+.content-enter {
+  animation: page-fade-in 560ms var(--ease-page) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .content-enter {
+    animation: none;
+  }
+}

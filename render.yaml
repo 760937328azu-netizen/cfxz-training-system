@@ -1,0 +1,31 @@
+# Render 部署配置
+# 文档: https://render.com/docs/blueprint-spec
+# 使用方法：在 Render 控制台选择 "New > Blueprint" 并连接 GitHub 仓库
+
+services:
+  - type: web
+    name: cfxz-training-system
+    runtime: docker
+    plan: starter
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 4000
+      - key: DATABASE_URL
+        sync: false  # 在 Render 控制台手动填写
+      - key: DIRECT_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false
+      - key: SEED_ADMIN_NAME
+        value: 超级管理员
+      - key: SEED_ADMIN_USERNAME
+        value: admin
+      - key: SEED_ADMIN_PASSWORD
+        sync: false

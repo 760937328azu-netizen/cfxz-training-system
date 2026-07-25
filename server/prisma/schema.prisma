@@ -1,0 +1,286 @@
+// ──────────────────────────────────────────────
+// 长发小寨新员工培训系统 — 数据库 Schema
+// 数据库: PostgreSQL (Supabase)
+// 共 11 张表
+// ──────────────────────────────────────────────
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ═══════════════════════════════════════════════
+// 1. 员工（新人）表
+// ═══════════════════════════════════════════════
+
+model User {
+  id              String     @id @default(uuid())
+  name            String
+  employeeNo      String?    @unique @map("employee_no") // 工号
+  phone           String     @unique // 手机号（即登录账号）
+  department      String?    // 部门
+  position        String?    // 岗位
+  entryDate       DateTime?  @map("entry_date")
+  batchId         String?    @map("batch_id")
+  passwordHash    String     @map("password_hash") // bcrypt 哈希
+  status          UserStatus @default(active)
+  dataSource      DataSource @default(manual) @map("data_source") // manual | moka
+  mokaEmployeeId  String?    @unique @map("moka_employee_id")
+  lastLoginAt     DateTime?  @map("last_login_at")
+  createdAt       DateTime   @default(now()) @map("created_at")
+  updatedAt       DateTime   @updatedAt @map("updated_at")
+
+  batch           TrainingBatch?  @relation(fields: [batchId], references: [id])
+  progress        LearningProgress?
+  stages          StageProgress[]
+  games           GameProgress[]
+  certifications  CertificationAttempt[]
+  events          LearningEvent[]
+
+  @@index([batchId])
+  @@index([status])
+  @@map("users")
+}
+
+enum UserStatus {
+  active
+  disabled
+}
+
+enum DataSource {
+  manual
+  moka
+}
+
+// ═══════════════════════════════════════════════
+// 2. 管理员表
+// ═══════════════════════════════════════════════
+
+model AdminUser {
+  id            String      @id @default(uuid())
+  name          String
+  username      String      @unique
+  passwordHash  String      @map("password_hash") // bcrypt 哈希
+  role          AdminRole   @default(viewer)
+  status        AdminStatus @default(active)
+  lastLoginAt   DateTime?   @map("last_login_at")
+  createdAt     DateTime    @default(now()) @map("created_at")
+  updatedAt     DateTime    @updatedAt @map("updated_at")
+
+  operations    AdminOperationLog[]
+
+  @@map("admin_users")
+}
+
+enum AdminRole {
+  super // 超级管理员：全部权限
+  viewer // 只读管理员：仅查看
+}
+
+enum AdminStatus {
+  active
+  disabled
+}
+
+// ═══════════════════════════════════════════════
+// 3. 培训批次表
+// ═══════════════════════════════════════════════
+
+model TrainingBatch {
+  id          String     @id @default(uuid())
+  name        String
+  startDate   DateTime   @map("start_date")
+  deadline    DateTime
+  status      BatchStatus @default(active)
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+
+  employees   User[]
+
+  @@index([status])
+  @@map("training_batches")
+}
+
+enum BatchStatus {
+  active
+  closed
+}
+
+// ═══════════════════════════════════════════════
+// 4. 学习进度总表（每个员工一条）
+// ═══════════════════════════════════════════════
+
+model LearningProgress {
+  id                    String   @id @default(uuid())
+  userId                String   @unique @map("user_id")
+  currentStage          String   @default("welcome") @map("current_stage")
+  lastSection           String?  @map("last_section")
+  learningWorldUnlocked Boolean  @default(false) @map("learning_world_unlocked")
+  lastVisitedAt         DateTime? @map("last_visited_at")
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("learning_progress")
+}
+
+// ═══════════════════════════════════════════════
+// 5. 关卡进度表（每个员工每关一条）
+// ═══════════════════════════════════════════════
+
+model StageProgress {
+  id               String      @id @default(uuid())
+  userId           String      @map("user_id")
+  stageId          String      @map("stage_id") // welcome | company | culture | product | rules | certification
+  status           StageStatus @default(pending)
+  completedExhibits String[]   @default([]) @map("completed_exhibits") // culture 展区完成列表
+  completedAt      DateTime?   @map("completed_at")
+  createdAt        DateTime    @default(now()) @map("created_at")
+  updatedAt        DateTime    @updatedAt @map("updated_at")
+
+  user             User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, stageId])
+  @@index([userId])
+  @@map("stage_progress")
+}
+
+enum StageStatus {
+  pending
+  in_progress
+  completed
+}
+
+// ═══════════════════════════════════════════════
+// 6. 游戏进度表（第五关四个游戏）
+// ═══════════════════════════════════════════════
+
+model GameProgress {
+  id           String    @id @default(uuid())
+  userId       String    @map("user_id")
+  gameKey      String    @map("game_key") // rocketBoss | valueMatch | valueCatch | quiz
+  completed    Boolean   @default(false)
+  gameData     Json?     @map("game_data") // 游戏详细数据（命中目标、匹配结果等）
+  completedAt  DateTime? @map("completed_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, gameKey])
+  @@index([userId])
+  @@map("game_progress")
+}
+
+// ═══════════════════════════════════════════════
+// 7. 认证考试记录表（每次认证单独保存）
+// ═══════════════════════════════════════════════
+
+model CertificationAttempt {
+  id              String   @id @default(uuid())
+  userId          String   @map("user_id")
+  questionVersion String   @map("question_version") // 题库版本号
+  score           Int      // 0-100
+  passed          Boolean  // score >= 80
+  answers         Json     // 答案数组 [{questionId, selectedOption, correct}]
+  weakAreas       String[] @map("weak_areas") // 薄弱领域
+  wrongQuestions  Json     @map("wrong_questions") // 错题详情
+  submittedAt     DateTime @default(now()) @map("submitted_at")
+
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([submittedAt])
+  @@map("certification_attempts")
+}
+
+// ═══════════════════════════════════════════════
+// 8. 学习事件表
+// ═══════════════════════════════════════════════
+
+model LearningEvent {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  eventType   String   @map("event_type") // login | stage_start | stage_complete | game_complete | cert_submit | cert_passed | cert_failed | world_unlocked | admin_reset
+  stageId     String?  @map("stage_id")
+  result      String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
+  @@index([eventType])
+  @@map("learning_events")
+}
+
+// ═══════════════════════════════════════════════
+// 9. Moka 同步事件表
+// ═══════════════════════════════════════════════
+
+model MokaSyncEvent {
+  id              String          @id @default(uuid())
+  eventType       String          @map("event_type") // employee_onboard | employee_update | employee_leave
+  mokaEmployeeId  String          @map("moka_employee_id")
+  payload         Json            // 原始 webhook 数据
+  status          MokaSyncStatus  @default(pending)
+  errorMessage    String?         @map("error_message")
+  processedAt     DateTime?       @map("processed_at")
+  createdAt       DateTime        @default(now()) @map("created_at")
+
+  @@index([mokaEmployeeId])
+  @@index([status])
+  @@map("moka_sync_events")
+}
+
+enum MokaSyncStatus {
+  pending
+  processed
+  failed
+}
+
+// ═══════════════════════════════════════════════
+// 10. 管理员操作日志表
+// ═══════════════════════════════════════════════
+
+model AdminOperationLog {
+  id          String   @id @default(uuid())
+  adminId     String?  @map("admin_id")
+  adminName   String   @map("admin_name")
+  action      String
+  targetType  String   @map("target_type") // employee | batch | admin | system
+  targetId    String?  @map("target_id")
+  targetName  String?  @map("target_name")
+  details     String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  admin       AdminUser? @relation(fields: [adminId], references: [id])
+
+  @@index([adminId])
+  @@index([targetType, targetId])
+  @@index([createdAt])
+  @@map("admin_operation_logs")
+}
+
+// ═══════════════════════════════════════════════
+// 11. 认证题库表
+// ═══════════════════════════════════════════════
+
+model QuestionBank {
+  id          String   @id @default(uuid())
+  version     String   // 题库版本号，如 "v1.0"
+  questions   Json     // 题目数组 [{id, question, options[], correctIndex, category, explanation}]
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([version])
+  @@index([isActive])
+  @@map("question_bank")
+}
