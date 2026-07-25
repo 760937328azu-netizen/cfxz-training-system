@@ -32,15 +32,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     openssl \
     && rm -rf /var/lib/apt/lists/*
 
-# 复制后端 package.json 和 node_modules
+# 复制后端 package.json
 COPY server/package*.json ./
+
+# 复制 Prisma schema（prisma generate 需要它）
+COPY --from=backend-builder /app/server/prisma ./prisma
+
+# 安装生产依赖 + 生成 Prisma Client
 RUN npm ci --only=production && npx prisma generate
 
 # 复制后端编译输出
 COPY --from=backend-builder /app/server/dist ./dist
-
-# 复制 Prisma schema
-COPY --from=backend-builder /app/server/prisma ./prisma
 
 # 复制前端静态文件
 COPY --from=frontend-builder /app/dist ./public
