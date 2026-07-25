@@ -71,6 +71,12 @@ app.use("/api/moka", mokaRouter);
 app.use("/api/export", exportRouter);
 app.use("/api/dashboard", dashboardRouter);
 
+// Moka Webhook 标准路径别名（同时保留 /api/moka/webhook 兼容路径）
+app.use("/api/integrations/moka/webhooks/employee-onboard", (req, res, next) => {
+  req.url = "/webhook";
+  mokaRouter(req, res, next);
+});
+
 // ── 生产环境：托管前端静态文件 ──
 const staticDir = path.join(__dirname, "..", "public");
 if (fs.existsSync(staticDir)) {
