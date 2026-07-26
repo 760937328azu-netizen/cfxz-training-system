@@ -54,11 +54,13 @@ COPY --from=backend-builder /app/server/handbook-kb.json ./handbook-kb.json
 ENV NODE_ENV=production
 ENV PORT=4000
 
-# 健康检查
-HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
+# 健康检查（start-period 设为 120s，给 prisma db push + seed + server 启动留足时间）
+HEALTHCHECK --interval=30s --timeout=5s --start-period=120s --retries=3 \
   CMD node -e "fetch('http://localhost:'+process.env.PORT+'/api/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"
 
 EXPOSE 4000
 
-# 启动前先同步数据库表结构 + 初始化种子数据（管理员账号+题库），再启动服务
-CMD ["sh", "-c", "npx prisma db push --accept-data-loss && node dist/seed.js && node dist/index.js"]
+# 启动流程：1) 同步数据库表结构  2) 初始化种子数据  3) 启动 Express 服务
+# 使用 ./node_modules/.bin/prisma（而非 npx prisma）避免运行时下载开销
+# db push 和 seed 设为非致命（|| true），即使失败也启动服务器，以便通过日志诊断
+CMD ["sh", "-c", "echo '=== [1/3] Running prisma db push ===' && (./node_modules/.bin/prisma db push --accept-data-loss 2>&1 || echo 'WARNING: prisma db push failed, continuing...') && echo '=== [2/3] Running seed ===' && (node dist/seed.js 2>&1 || echo 'WARNING: seed failed, continuing...') && echo '=== [3/3] Starting Express server ===' && node dist/index.js"]
