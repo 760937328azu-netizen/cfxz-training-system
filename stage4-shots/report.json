@@ -1,0 +1,107 @@
+{
+  "build": "ok",
+  "widths": {
+    "1440": {
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "scrollWidth": 1184,
+      "clientWidth": 1184,
+      "noHorizontalScroll": true,
+      "consoleErrors": 0,
+      "consoleWarnings": 0
+    },
+    "1600": {
+      "viewport": {
+        "width": 1600,
+        "height": 900
+      },
+      "scrollWidth": 1344,
+      "clientWidth": 1344,
+      "noHorizontalScroll": true,
+      "consoleErrors": 0,
+      "consoleWarnings": 0
+    },
+    "1920": {
+      "viewport": {
+        "width": 1920,
+        "height": 900
+      },
+      "scrollWidth": 1664,
+      "clientWidth": 1664,
+      "noHorizontalScroll": true,
+      "consoleErrors": 0,
+      "consoleWarnings": 0
+    }
+  },
+  "screenshots": [
+    {
+      "name": "stage4-entry.png",
+      "ok": true,
+      "bytes": 346009
+    },
+    {
+      "name": "stage4-scalp.png",
+      "ok": true,
+      "bytes": 480031
+    },
+    {
+      "name": "stage4-foundation.png",
+      "ok": true,
+      "bytes": 419835
+    },
+    {
+      "name": "stage4-transition.png",
+      "ok": true,
+      "bytes": 421972
+    },
+    {
+      "name": "stage4-lines.png",
+      "ok": true,
+      "bytes": 403204
+    },
+    {
+      "name": "stage4-wash.png",
+      "ok": true,
+      "bytes": 360173
+    },
+    {
+      "name": "stage4-wash-bottom.png",
+      "ok": true,
+      "bytes": 331231
+    },
+    {
+      "name": "stage4-care.png",
+      "ok": true,
+      "bytes": 356707
+    },
+    {
+      "name": "stage4-nourish.png",
+      "ok": true,
+      "bytes": 418274
+    },
+    {
+      "name": "stage4-faq.png",
+      "ok": true,
+      "bytes": 376895
+    },
+    {
+      "name": "stage4-summary.png",
+      "ok": true,
+      "bytes": 402796
+    }
+  ],
+  "triggeredDialogs": [
+    {
+      "section": "entry",
+      "name": "小瑶陪你开始",
+      "visible": true
+    },
+    {
+      "section": "scalp",
+      "name": "小瑶先带你感受一下",
+      "visible": true
+    }
+  ]
+}

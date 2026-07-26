@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>长发小寨培训系统 — 部署就绪文档</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: "PingFang SC", "Microsoft YaHei", -apple-system, sans-serif; background: #F9F6F0; color: #2C2C2A; line-height: 1.7; }
+  .container { max-width: 960px; margin: 0 auto; padding: 40px 24px 80px; }
+  h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; color: #B0453A; }
+  h2 { font-size: 22px; font-weight: 600; margin: 40px 0 16px; padding-bottom: 8px; border-bottom: 2px solid #B0453A; }
+  h3 { font-size: 17px; font-weight: 600; margin: 24px 0 12px; color: #444; }
+  h4 { font-size: 15px; font-weight: 600; margin: 16px 0 8px; color: #5A5650; }
+  p { margin-bottom: 12px; font-size: 14px; }
+  ul, ol { margin: 8px 0 16px 20px; font-size: 14px; }
+  li { margin-bottom: 4px; }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0 20px; font-size: 13px; background: #fff; border-radius: 8px; overflow: hidden; }
+  th { background: #B0453A; color: #fff; padding: 10px 12px; text-align: left; font-weight: 600; font-size: 13px; }
+  td { padding: 8px 12px; border-bottom: 1px solid #eee; vertical-align: top; }
+  tr:nth-child(even) td { background: #faf9f6; }
+  .badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+  .badge-green { background: #E1F5EE; color: #0F6E56; }
+  .badge-blue { background: #E6F1FB; color: #185FA5; }
+  .badge-red { background: #FCEBEB; color: #A32D2D; }
+  .badge-amber { background: #FAEEDA; color: #854F0B; }
+  .badge-purple { background: #EEEDFE; color: #534AB7; }
+  .callout { background: #fff; border-left: 4px solid #B0453A; padding: 16px 20px; margin: 16px 0; border-radius: 0 8px 8px 0; font-size: 14px; }
+  .callout-warn { border-left-color: #EF9F27; }
+  .callout-danger { border-left-color: #E24B4A; }
+  .callout-success { border-left-color: #1D9E75; }
+  .section { background: #fff; border-radius: 12px; padding: 24px; margin: 16px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+  .meta { color: #888; font-size: 13px; margin-bottom: 24px; }
+  code { background: #f4f2ec; padding: 2px 6px; border-radius: 4px; font-size: 13px; font-family: "SF Mono", Consolas, monospace; }
+  .endpoint { font-family: "SF Mono", Consolas, monospace; font-size: 13px; }
+  .method-get { color: #185FA5; font-weight: 700; }
+  .method-post { color: #0F6E56; font-weight: 700; }
+  .method-put { color: #854F0B; font-weight: 700; }
+  .method-delete { color: #A32D2D; font-weight: 700; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>长发小寨新员工培训系统 — 部署就绪文档</h1>
+  <p class="meta">生成时间：2026-07-25 | 版本：v1.0 | 数据库：Supabase PostgreSQL | 后端：Node.js + Express + Prisma</p>
+
+  <div class="callout callout-success">
+    <strong>前端 API 模式审计结论：</strong>当前前端已完全切换 API 模式。所有员工数据、学习进度、认证成绩、管理员权限均通过 API 从数据库读取。localStorage 仅用于 JWT token 存储、用户信息缓存和滚动位置恢复，不作为正式数据源。当 <code>VITE_API_BASE_URL</code> 未配置时降级到 localStorage 模式（仅用于开发/演示）。
+  </div>
+
+  <!-- ===== 第一部分：数据库表结构 ===== -->
+  <h2>一、数据库表结构说明（11 张表）</h2>
+
+  <h3>表 1：users — 员工（新人）表</h3>
+  <table>
+    <tr><th>字段</th><th>类型</th><th>用途</th></tr>
+    <tr><td>id</td><td>String (UUID)</td><td>主键，自动生成</td></tr>
+    <tr><td>name</td><td>String</td><td>员工姓名</td></tr>
+    <tr><td>employee_no</td><td>String? (unique)</td><td>工号</td></tr>
+    <tr><td>phone</td><td>String (unique)</td><td>手机号（即登录账号）</td></tr>
+    <tr><td>department</td><td>String?</td><td>部门</td></tr>
+    <tr><td>position</td><td>String?</td><td>岗位</td></tr>
+    <tr><td>entry_date</td><td>DateTime?</td><td>入职日期</td></tr>
+    <tr><td>batch_id</td><td>String? (FK)</td><td>关联培训批次</td></tr>
+    <tr><td>password_hash</td><td>String</td><td>bcrypt 哈希密码</td></tr>
+    <tr><td>status</td><td>Enum(active/disabled)</td><td>账号状态</td></tr>
+    <tr><td>data_source</td><td>Enum(manual/moka)</td><td>数据来源（手动/Moka同步）</td></tr>
+    <tr><td>moka_employee_id</td><td>String? (unique)</td><td>Moka 系统员工 ID</td></tr>
+    <tr><td>last_login_at</td><td>DateTime?</td><td>最后登录时间</td></tr>
+    <tr><td>created_at / updated_at</td><td>DateTime</td><td>创建/更新时间</td></tr>
+  </table>
+  <p><strong>前端对应：</strong>LoginPage（登录验证）、管理后台员工列表页、管理后台员工详情页、Dashboard 统计</p>
+
+  <h3>表 2：admin_users — 管理员表</h3>
+  <table>
+    <tr><th>字段</th><th>类型</th><th>用途</th></tr>
+    <tr><td>id</td><td>String (UUID)</td><td>主键</td></tr>
+    <tr><td>name</td><td>String</td><td>管理员姓名</td></tr>
+    <tr><td>username</td><td>String (unique)</td><td>登录用户名</td></tr>
+    <tr><td>password_hash</td><td>String</td><td>bcrypt 哈希密码</td></tr>
+    <tr><td>role</td><td>Enum(super/viewer)</td><td>角色：超级管理员/只读管理员</td></tr>
+    <tr><td>status</td><td>Enum(active/disabled)</td><td>账号状态</td></tr>
+    <tr><td>last_login_at</td><td>DateTime?</td><td>最后登录时间</td></tr>
+    <tr><td>created_at / updated_at</td><td>DateTime</td><td>创建/更新时间</td></tr>
+  </table>
+  <p><strong>前端对应：</strong>AdminLoginPage（登录验证）、管理后台管理员管理页</p>
+
+  <h3>表 3：training_batches — 培训批次表</h3>
+  <table>
+    <tr><th>字段</th><th>类型</th><th>用途</th></tr>
+    <tr><td>id</td><td>String (UUID)</td><td>主键</td></tr>
+    <tr><td>name</td><td>String</td><td>批次名称（如"2026年7月新员工"）</td></tr>
+    <tr><td>start_date</td><td>DateTime</td><td>培训开始日期</td></tr>
+    <tr><td>deadline</td><td>DateTime</td><td>培训截止日期</td></tr>
+    <tr><td>status</td><td>Enum(active/closed)</td><td>批次状态</td></tr>
+    <tr><td>created_at / updated_at</td><td>DateTime</td><td>创建/更新时间</td></tr>
+  </table>
+  <p><strong>前端对应：</strong>管理后台批次管理页、Dashboard 统计（超期计算）</p>
+
+  <h3>表 4：learning_progress — 学习进度总表</h3>
+  <table>
+    <tr><th>字段</th><th>类型</th><th>用途</th></tr>
+    <tr><td>id</td><td>String (UUID)</td><td>主键</td></tr>
+    <tr><td>user_id</td><td>String (unique, FK)</td><td>关联员工，一对一</td></tr>
+    <tr><td>current_stage</td><td>String</td><td>当前关卡 (welcome/company/culture/product/rules/certification)</td></tr>
+    <tr><td>last_section</td><td>String?</td><td>上次浏览的区段（用于继续学习）</td></tr>
+    <tr><td>learning_world_unlocked</td><td>Boolean</td><td>学习天地是否已解锁（认证通过后为 true）</td></tr>
+    <tr><td>last_visited_at</td><td>DateTime?</td><td>最后访问时间</td></tr>
+    <tr><td>created_at / updated_at</td><td>DateTime</td><td>创建/更新时间</td></tr>
+  </table>
+  <p><strong>前端对应：</strong>首页成长地图（当前关卡位置）、首页"继续学习"模块、管理后台员工详情页</p>
+
+  <h3>表 5：stage_progress — 关卡进度表</h3>
+  <table>
+    <tr><th>字段</th><th>类型</th><th>用途</th></tr>
+    <tr><td>id</td><td>String (UUID)</td><td>主键</td></tr>
+    <tr><td>user_id</td><td>String (FK)</td><td>关联员工</td></tr>
+    <tr><td>stage_id</td><td>String</td><td>关卡 ID (welcome/company/culture/product/rules/certification)</td></tr>
+    <tr><td>status</td><td>Enum(pending/in_progress/completed)</td><td>关卡完成状态</td></tr>
+    <tr><td>completed_exhibits</td><td>String[]</td><td>文化馆展区完成列表</td></tr>
+    <tr><td>completed_at</td><td>DateTime?</td><td>完成时间</td></tr>
+    <tr><td>created_at / updated_at</td><td>DateTime</td><td>创建/更新时间</td></tr>
+  </table>
+  <p><strong>唯一约束：</strong>(user_id, stage_id) — 每个员工每关一条记录</p>
+  <p><strong>前端对应：</strong>首页成长地图节点状态（锁定/进行中/已完成）、各关卡页面完成状态</p>
+
+  <h3>表 6：game_progress — 游戏进度表</h3>
+  <table>
+    <tr><th>字段</th><th>类型</th><th>用途</th></tr>
+    <tr><td>id</td><td>String (UUID)</td><td>主键</td></tr>
+    <tr><td>user_id</td><td>String (FK)</td><td>关联员工</td></tr>
+    <tr><td>game_key</td><td>String</td><td>游戏标识 (rocketBoss/valueMatch/valueCatch/quiz)</td></tr>
+    <tr><td>completed</td><td>Boolean</td><td>是否完成</td></tr>
+    <tr><td>game_data</td><td>Json?</td><td>游戏详细数据（命中目标、匹配结果等）</td></tr>
+    <tr><td>completed_at</td><td>DateTime?</td><td>完成时间</td></tr>
+    <tr><td>created_at / updated_at</td><td>DateTime</td><td>创建/更新时间</td></tr>
+  </table>
+  <p><strong>唯一约束：</strong>(user_id, game_key) — 每个员工每个游戏一条记录</p>
+  <p><strong>前端对应：</strong>第五关（制度闯关）游戏大厅 — 四个小游戏完成状态。四关全通后自动标记 rules 关卡完成</p>
+
+  <h3>表 7：certification_attempts — 认证考试记录表</h3>
+  <table>
+    <tr><th>字段</th><th>类型</th><th>用途</th></tr>
+    <tr><td>id</td><td>String (UUID)</td><td>主键</td></tr>
+    <tr><td>user_id</td><td>String (FK)</td><td>关联员工</td></tr>
+    <tr><td>question_version</td><td>String</td><td>题库版本号（如 "v1.0"）</td></tr>
+    <tr><td>score</td><td>Int</td><td>考试分数 0-100</td></tr>
+    <tr><td>passed</td><td>Boolean</td><td>是否通过（score >= 80）</td></tr>
+    <tr><td>answers</td><td>Json</td><td>答案数组 [{questionId, selectedOption, correct}]</td></tr>
+    <tr><td>weak_areas</td><td>String[]</td><td>薄弱领域列表</td></tr>
+    <tr><td>wrong_questions</td><td>Json</td><td>错题详情</td></tr>
+    <tr><td>submitted_at</td><td>DateTime</td><td>提交时间</td></tr>
+  </table>
+  <p><strong>前端对应：</strong>第六关（入职认证）考试页面 — 考试结果展示、错题回顾、认证历史。管理后台员工详情页可查看认证记录</p>
+
+  <h3>表 8：learning_events — 学习事件表</h3>
+  <table>
+    <tr><th>字段</th><th>类型</th><th>用途</th></tr>
+    <tr><td>id</td><td>String (UUID)</td><td>主键</td></tr>
+    <tr><td>user_id</td><td>String (FK)</td><td>关联员工</td></tr>
+    <tr><td>event_type</td><td>String</td><td>事件类型 (login/stage_start/stage_complete/game_complete/cert_submit/cert_passed/cert_failed/world_unlocked/admin_reset)</td></tr>
+    <tr><td>stage_id</td><td>String?</td><td>关联关卡（如有）</td></tr>
+    <tr><td>result</td><td>String?</td><td>事件结果</td></tr>
+    <tr><td>created_at</td><td>DateTime</td><td>事件发生时间</td></tr>
+  </table>
+  <p><strong>前端对应：</strong>管理后台学习事件页（时间线视图）、Dashboard 统计（学习活跃度）</p>
+
+  <h3>表 9：moka_sync_events — Moka 同步事件表</h3>
+  <table>
+    <tr><th>字段</th><th>类型</th><th>用途</th></tr>
+    <tr><td>id</td><td>String (UUID)</td><td>主键</td></tr>
+    <tr><td>event_type</td><td>String</td><td>Moka 事件类型 (employee_onboard/employee_update/employee_leave)</td></tr>
+    <tr><td>moka_employee_id</td><td>String</td><td>Moka 系统员工 ID</td></tr>
+    <tr><td>payload</td><td>Json</td><td>原始 webhook 数据（完整保存）</td></tr>
+    <tr><td>status</td><td>Enum(pending/processed/failed)</td><td>处理状态</td></tr>
+    <tr><td>error_message</td><td>String?</td><td>处理失败时的错误信息</td></tr>
+    <tr><td>processed_at</td><td>DateTime?</td><td>处理完成时间</td></tr>
+    <tr><td>created_at</td><td>DateTime</td><td>webhook 接收时间</td></tr>
+  </table>
+  <p><strong>前端对应：</strong>管理后台 Moka 同步事件页（查看同步状态和错误日志）</p>
+
+  <h3>表 10：admin_operation_logs — 管理员操作日志表</h3>
+  <table>
+    <tr><th>字段</th><th>类型</th><th>用途</th></tr>
+    <tr><td>id</td><td>String (UUID)</td><td>主键</td></tr>
+    <tr><td>admin_id</td><td>String? (FK)</td><td>操作管理员 ID</td></tr>
+    <tr><td>admin_name</td><td>String</td><td>操作管理员姓名（冗余存储防删除后丢失）</td></tr>
+    <tr><td>action</td><td>String</td><td>操作动作 (create_employee/delete_employee/reset_progress 等)</td></tr>
+    <tr><td>target_type</td><td>String</td><td>操作对象类型 (employee/batch/admin/system)</td></tr>
+    <tr><td>target_id</td><td>String?</td><td>操作对象 ID</td></tr>
+    <tr><td>target_name</td><td>String?</td><td>操作对象名称</td></tr>
+    <tr><td>details</td><td>String?</td><td>操作详情</td></tr>
+    <tr><td>created_at</td><td>DateTime</td><td>操作时间</td></tr>
+  </table>
+  <p><strong>前端对应：</strong>管理后台操作日志页（审计追踪，支持按对象类型和管理员筛选）</p>
+
+  <h3>表 11：question_bank — 认证题库表</h3>
+  <table>
+    <tr><th>字段</th><th>类型</th><th>用途</th></tr>
+    <tr><td>id</td><td>String (UUID)</td><td>主键</td></tr>
+    <tr><td>version</td><td>String</td><td>题库版本号（如 "v1.0"）</td></tr>
+    <tr><td>questions</td><td>Json</td><td>题目数组 [{id, question, options[], correctIndex, category, explanation}]</td></tr>
+    <tr><td>is_active</td><td>Boolean</td><td>是否为当前激活版本（同时只有一个激活）</td></tr>
+    <tr><td>created_at / updated_at</td><td>DateTime</td><td>创建/更新时间</td></tr>
+  </table>
+  <p><strong>前端对应：</strong>第六关认证考试 — 拉取当前激活版本的题目。管理后台题库管理页可上传新版本</p>
+
+  <!-- ===== 第二部分：API 接口清单 ===== -->
+  <h2>二、API 接口清单（40 个端点）</h2>
+
+  <h3>1. 认证路由 — /api/auth (4 个)</h3>
+  <table>
+    <tr><th>方法</th><th>路径</th><th>用途</th><th>权限</th></tr>
+    <tr><td class="method-post">POST</td><td class="endpoint">/auth/employee/login</td><td>员工登录（手机号+密码）</td><td><span class="badge badge-green">公开</span></td></tr>
+    <tr><td class="method-post">POST</td><td class="endpoint">/auth/admin/login</td><td>管理员登录（用户名+密码）</td><td><span class="badge badge-green">公开</span></td></tr>
+    <tr><td class="method-get">GET</td><td class="endpoint">/auth/me</td><td>获取当前登录用户信息</td><td><span class="badge badge-blue">已认证</span></td></tr>
+    <tr><td class="method-post">POST</td><td class="endpoint">/auth/change-password</td><td>修改密码</td><td><span class="badge badge-blue">已认证</span></td></tr>
+  </table>
+
+  <h3>2. 学习进度路由 — /api/progress (4 个)</h3>
+  <table>
+    <tr><th>方法</th><th>路径</th><th>用途</th><th>权限</th></tr>
+    <tr><td class="method-get">GET</td><td class="endpoint">/progress</td><td>获取当前员工完整进度</td><td><span class="badge badge-blue">员工</span></td></tr>
+    <tr><td class="method-put">PUT</td><td class="endpoint">/progress/stage</td><td>更新关卡进度（start/complete/complete_exhibit）</td><td><span class="badge badge-blue">员工</span></td></tr>
+    <tr><td class="method-put">PUT</td><td class="endpoint">/progress/game</td><td>更新游戏进度（四关全通自动标记 rules 完成）</td><td><span class="badge badge-blue">员工</span></td></tr>
+    <tr><td class="method-put">PUT</td><td class="endpoint">/progress/position</td><td>保存学习位置（currentStage + lastSection）</td><td><span class="badge badge-blue">员工</span></td></tr>
+  </table>
+
+  <h3>3. 认证考试路由 — /api/certification (4 个)</h3>
+  <table>
+    <tr><th>方法</th><th>路径</th><th>用途</th><th>权限</th></tr>
+    <tr><td class="method-get">GET</td><td class="endpoint">/certification/questions</td><td>获取当前题库题目（不暴露正确答案）</td><td><span class="badge badge-blue">员工</span></td></tr>
+    <tr><td class="method-post">POST</td><td class="endpoint">/certification/submit</td><td>提交认证考试（评分 >= 80 通过，解锁学习天地）</td><td><span class="badge badge-blue">员工</span></td></tr>
+    <tr><td class="method-get">GET</td><td class="endpoint">/certification/history</td><td>获取认证历史记录</td><td><span class="badge badge-blue">员工</span></td></tr>
+    <tr><td class="method-post">POST</td><td class="endpoint">/certification/:userId/reset</td><td>重置员工认证记录</td><td><span class="badge badge-red">super</span></td></tr>
+  </table>
+
+  <h3>4. 员工管理路由 — /api/employees (7 个)</h3>
+  <table>
+    <tr><th>方法</th><th>路径</th><th>用途</th><th>权限</th></tr>
+    <tr><td class="method-get">GET</td><td class="endpoint">/employees</td><td>员工列表（分页+筛选）</td><td><span class="badge badge-amber">admin</span></td></tr>
+    <tr><td class="method-get">GET</td><td class="endpoint">/employees/:id</td><td>单个员工详情</td><td><span class="badge badge-amber">admin</span></td></tr>
+    <tr><td class="method-post">POST</td><td class="endpoint">/employees</td><td>新增员工（自动初始化进度+关卡+游戏）</td><td><span class="badge badge-red">super</span></td></tr>
+    <tr><td class="method-put">PUT</td><td class="endpoint">/employees/:id</td><td>更新员工信息（支持 resetPassword）</td><td><span class="badge badge-red">super</span></td></tr>
+    <tr><td class="method-delete">DELETE</td><td class="endpoint">/employees/:id</td><td>删除员工（级联删除）</td><td><span class="badge badge-red">super</span></td></tr>
+    <tr><td class="method-post">POST</td><td class="endpoint">/employees/batch</td><td>批量新增员工</td><td><span class="badge badge-red">super</span></td></tr>
+    <tr><td class="method-post">POST</td><td class="endpoint">/employees/:id/reset-progress</td><td>重置员工全部进度</td><td><span class="badge badge-red">super</span></td></tr>
+  </table>
+
+  <h3>5. 培训批次路由 — /api/batches (4 个)</h3>
+  <table>
+    <tr><th>方法</th><th>路径</th><th>用途</th><th>权限</th></tr>
+    <tr><td class="method-get">GET</td><td class="endpoint">/batches</td><td>批次列表（含 employeeCount）</td><td><span class="badge badge-amber">admin</span></td></tr>
+    <tr><td class="method-post">POST</td><td class="endpoint">/batches</td><td>创建批次</td><td><span class="badge badge-red">super</span></td></tr>
+    <tr><td class="method-put">PUT</td><td class="endpoint">/batches/:id</td><td>更新批次</td><td><span class="badge badge-red">super</span></td></tr>
+    <tr><td class="method-delete">DELETE</td><td class="endpoint">/batches/:id</td><td>删除批次（先解除员工关联）</td><td><span class="badge badge-red">super</span></td></tr>
+  </table>
+
+  <h3>6. 管理员管理路由 — /api/admin (8 个)</h3>
+  <table>
+    <tr><th>方法</th><th>路径</th><th>用途</th><th>权限</th></tr>
+    <tr><td class="method-get">GET</td><td class="endpoint">/admin/users</td><td>管理员列表</td><td><span class="badge badge-red">super</span></td></tr>
+    <tr><td class="method-post">POST</td><td class="endpoint">/admin/users</td><td>创建管理员</td><td><span class="badge badge-red">super</span></td></tr>
+    <tr><td class="method-put">PUT</td><td class="endpoint">/admin/users/:id</td><td>更新管理员（支持改密码）</td><td><span class="badge badge-red">super</span></td></tr>
+    <tr><td class="method-delete">DELETE</td><td class="endpoint">/admin/users/:id</td><td>删除管理员（不能删自己）</td><td><span class="badge badge-red">super</span></td></tr>
+    <tr><td class="method-get">GET</td><td class="endpoint">/admin/logs</td><td>操作日志（分页）</td><td><span class="badge badge-amber">admin</span></td></tr>
+    <tr><td class="method-get">GET</td><td class="endpoint">/admin/events</td><td>学习事件（分页，含 userName/userPhone）</td><td><span class="badge badge-amber">admin</span></td></tr>
+    <tr><td class="method-post">POST</td><td class="endpoint">/admin/questions</td><td>上传题库</td><td><span class="badge badge-red">super</span></td></tr>
+    <tr><td class="method-get">GET</td><td class="endpoint">/admin/questions</td><td>题库列表</td><td><span class="badge badge-amber">admin</span></td></tr>
+  </table>
+
+  <h3>7. Dashboard 统计路由 — /api/dashboard (1 个)</h3>
+  <table>
+    <tr><th>方法</th><th>路径</th><th>用途</th><th>权限</th></tr>
+    <tr><td class="method-get">GET</td><td class="endpoint">/dashboard/stats</td><td>仪表盘统计（总人数/学习中/已完成/已认证/未开始/超期/关卡分布/关注列表）</td><td><span class="badge badge-amber">admin</span></td></tr>
+  </table>
+
+  <h3>8. 数据导出路由 — /api/export (2 个)</h3>
+  <table>
+    <tr><th>方法</th><th>路径</th><th>用途</th><th>权限</th></tr>
+    <tr><td class="method-get">GET</td><td class="endpoint">/export/employees</td><td>导出员工进度 CSV（带 BOM 支持 Excel 中文）</td><td><span class="badge badge-amber">admin</span></td></tr>
+    <tr><td class="method-get">GET</td><td class="endpoint">/export/progress/:userId</td><td>导出单个员工详细进度 JSON</td><td><span class="badge badge-amber">admin</span></td></tr>
+  </table>
+
+  <h3>9. Moka 接口路由 — /api/moka (2 个)</h3>
+  <table>
+    <tr><th>方法</th><th>路径</th><th>用途</th><th>权限</th></tr>
+    <tr><td class="method-post">POST</td><td class="endpoint">/moka/webhook</td><td>接收 Moka Webhook（验证签名→创建 syncEvent→处理员工创建/更新→初始化进度）</td><td><span class="badge badge-purple">Webhook</span></td></tr>
+    <tr><td class="method-get">GET</td><td class="endpoint">/moka/sync-events</td><td>查看 Moka 同步事件（admin）</td><td><span class="badge badge-amber">admin</span></td></tr>
+  </table>
+
+  <h3>10. 健康检查 — /api/health (1 个)</h3>
+  <table>
+    <tr><th>方法</th><th>路径</th><th>用途</th><th>权限</th></tr>
+    <tr><td class="method-get">GET</td><td class="endpoint">/health</td><td>健康检查端点</td><td><span class="badge badge-green">公开</span></td></tr>
+  </table>
+
+  <!-- ===== 第三部分：登录流程 ===== -->
+  <h2>三、登录流程</h2>
+
+  <h3>员工登录流程</h3>
+  <div class="section">
+    <ol>
+      <li><strong>前端输入：</strong>员工在 LoginPage 输入手机号 + 密码</li>
+      <li><strong>API 调用：</strong><code>POST /api/auth/employee/login</code>，body: <code>{ phone, password }</code></li>
+      <li><strong>后端验证：</strong>
+        <ul>
+          <li>通过 phone 查找 users 表，确认 status === active</li>
+          <li>bcrypt.compare(password, password_hash) 验证密码</li>
+          <li>验证通过 → 生成 JWT token（7天有效期），更新 last_login_at</li>
+          <li>记录 login 事件到 learning_events 表</li>
+        </ul>
+      </li>
+      <li><strong>前端存储：</strong>
+        <ul>
+          <li><code>cfxz-auth-token</code> → JWT token</li>
+          <li>用户信息缓存（name/phone/department/employeeNo 等）</li>
+        </ul>
+      </li>
+      <li><strong>进度同步：</strong><code>useProgressSync()</code> 自动调用 <code>GET /api/progress</code> 拉取完整进度到 localStorage 缓存</li>
+      <li><strong>路由跳转：</strong>跳转到首页，展示成长地图</li>
+    </ol>
+  </div>
+
+  <h3>管理员登录流程</h3>
+  <div class="section">
+    <ol>
+      <li><strong>前端输入：</strong>管理员在 AdminLoginPage 输入用户名 + 密码</li>
+      <li><strong>API 调用：</strong><code>POST /api/auth/admin/login</code>，body: <code>{ username, password }</code></li>
+      <li><strong>后端验证：</strong>
+        <ul>
+          <li>通过 username 查找 admin_users 表，确认 status === active</li>
+          <li>bcrypt.compare(password, password_hash) 验证密码</li>
+          <li>验证通过 → 生成 JWT token（7天有效期），更新 last_login_at</li>
+        </ul>
+      </li>
+      <li><strong>前端存储：</strong>
+        <ul>
+          <li><code>cfxz-admin-auth-token</code> → 管理员 JWT token</li>
+          <li>管理员信息缓存（name/username/role）</li>
+        </ul>
+      </li>
+      <li><strong>数据同步：</strong><code>refreshAdminCache()</code> 拉取员工列表、批次列表、管理员列表</li>
+      <li><strong>路由跳转：</strong>跳转到管理后台 Dashboard</li>
+    </ol>
+  </div>
+
+  <!-- ===== 第四部分：员工学习数据流 ===== -->
+  <h2>四、员工学习数据流</h2>
+
+  <div class="section">
+    <h3>阶段 1：页面挂载 — 自动同步</h3>
+    <p>当员工进入任意页面时，<code>useProgressSync()</code> Hook 自动触发：</p>
+    <ol>
+      <li>调用 <code>GET /api/progress</code>（携带 JWT token）</li>
+      <li>后端从 4 张表联查：learning_progress + stage_progress + game_progress + certification_attempts</li>
+      <li>返回完整的 ProgressResponse（当前关卡、各关状态、游戏进度、认证状态、完成率）</li>
+      <li>前端通过 <code>apiProgressToLocal()</code> 转换为前端 LearningProgress 格式</li>
+      <li>写入 localStorage 作为缓存（key: <code>cfxz-phase3-learning-progress-v2-{username}</code>）</li>
+    </ol>
+  </div>
+
+  <div class="section">
+    <h3>阶段 2：学习操作 — 乐观更新 + API 同步</h3>
+    <p>当员工完成关卡/展区/游戏时，采用乐观更新模式：</p>
+    <ol>
+      <li><strong>乐观更新：</strong>先 <code>writeProgress()</code> 写入 localStorage，UI 立即更新（无延迟）</li>
+      <li><strong>API 同步：</strong>fire-and-forget 调用 <code>progressApi.updateStage()</code> 或 <code>progressApi.updateGame()</code></li>
+      <li><strong>后端写入：</strong>
+        <ul>
+          <li>关卡进度 → 写入 stage_progress 表（status: pending → in_progress → completed）</li>
+          <li>展区完成 → 追加到 completed_exhibits 数组</li>
+          <li>游戏进度 → 写入 game_progress 表，检测四关全通后自动标记 rules 关卡 completed</li>
+          <li>学习事件 → 记录到 learning_events 表（stage_complete / game_complete）</li>
+        </ul>
+      </li>
+      <li><strong>错误处理：</strong>API 调用失败时静默忽略（localStorage 缓存仍正确），下次挂载时重新同步</li>
+    </ol>
+  </div>
+
+  <div class="section">
+    <h3>阶段 3：认证考试 — 完整链路</h3>
+    <ol>
+      <li><strong>拉取题目：</strong><code>GET /api/certification/questions</code> → 从 question_bank 表获取当前激活版本题目（不暴露 correctIndex）</li>
+      <li><strong>答题提交：</strong><code>POST /api/certification/submit</code> → 后端评分</li>
+      <li><strong>评分逻辑：</strong>score >= 80 → passed = true</li>
+      <li><strong>数据库写入：</strong>
+        <ul>
+          <li>保存考试记录到 certification_attempts 表</li>
+          <li>如果通过 → 更新 learning_progress.learning_world_unlocked = true</li>
+          <li>记录 cert_passed 事件到 learning_events</li>
+        </ul>
+      </li>
+      <li><strong>前端响应：</strong>显示考试结果 + 错题详情 + 解析 → 解锁"学习天地"模块</li>
+    </ol>
+  </div>
+
+  <!-- ===== 第五部分：Moka 对接 ===== -->
+  <h2>五、Moka 对接接口位置</h2>
+
+  <div class="callout">
+    <strong>Moka Webhook 入口：</strong><code>POST /api/moka/webhook</code>
+  </div>
+
+  <div class="section">
+    <h3>对接流程</h3>
+    <ol>
+      <li><strong>Moka 配置 Webhook URL：</strong>在 Moka 系统中配置 Webhook 地址指向后端 <code>https://[your-domain]/api/moka/webhook</code></li>
+      <li><strong>签名验证：</strong>后端通过 <code>MOKA_WEBHOOK_SECRET</code> 验证请求签名，防止伪造</li>
+      <li><strong>事件处理：</strong>
+        <ul>
+          <li><code>employee_onboard</code> → 创建新员工（自动初始化 progress + 6 个 stage + 4 个 game）</li>
+          <li><code>employee_update</code> → 更新员工信息</li>
+          <li><code>employee_leave</code> → 将员工 status 设为 disabled</li>
+        </ul>
+      </li>
+      <li><strong>同步记录：</strong>所有 webhook 数据保存到 moka_sync_events 表，支持后续审计和重放</li>
+    </ol>
+  </div>
+
+  <div class="section">
+    <h3>需要配置的环境变量</h3>
+    <table>
+      <tr><th>变量</th><th>用途</th><th>状态</th></tr>
+      <tr><td><code>MOKA_API_BASE_URL</code></td><td>Moka API 基础 URL</td><td>当前留空</td></tr>
+      <tr><td><code>MOKA_API_KEY</code></td><td>Moka API 密钥（仅服务端使用）</td><td>当前留空</td></tr>
+      <tr><td><code>MOKA_RSA_PRIVATE_KEY</code></td><td>RSA 私钥（用于签名验证）</td><td>当前留空</td></tr>
+      <tr><td><code>MOKA_WEBHOOK_SECRET</code></td><td>Webhook 签名密钥</td><td>当前留空</td></tr>
+    </table>
+    <p><strong>安全说明：</strong>所有 Moka 密钥仅存在服务端 <code>.env</code> 文件中，前端代码不包含任何 Moka 密钥。</p>
+  </div>
+
+  <!-- ===== 第六部分：上线前安全检查清单 ===== -->
+  <h2>六、上线前安全检查清单</h2>
+
+  <div class="callout callout-danger">
+    <strong>以下 5 项必须在上线前逐项确认完成：</strong>
+  </div>
+
+  <table>
+    <tr><th>#</th><th>检查项</th><th>当前状态</th><th>操作说明</th></tr>
+    <tr>
+      <td>1</td>
+      <td><strong>测试账号删除</strong></td>
+      <td><span class="badge badge-amber">待执行</span></td>
+      <td>数据库建表后，删除 seed 产生的测试员工（如有）。确保生产环境无测试数据残留</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td><strong>admin 默认密码修改</strong></td>
+      <td><span class="badge badge-amber">待执行</span></td>
+      <td>在 <code>server/.env</code> 中将 <code>SEED_ADMIN_PASSWORD</code> 从 <code>ChangeMe!2026</code> 改为强密码（至少 12 位，含大小写+数字+符号）</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td><strong>JWT_SECRET 修改</strong></td>
+      <td><span class="badge badge-amber">待执行</span></td>
+      <td>在 <code>server/.env</code> 中将 <code>JWT_SECRET</code> 改为随机 64 字符字符串。可用命令：<code>openssl rand -base64 64</code></td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td><strong>API 密钥不暴露前端</strong></td>
+      <td><span class="badge badge-green">已确认</span></td>
+      <td>所有 Moka 密钥、JWT_SECRET、DATABASE_URL 仅在服务端 .env 中，前端代码不含任何敏感密钥。前端仅使用 <code>VITE_API_BASE_URL</code> 指向后端地址</td>
+    </tr>
+    <tr>
+      <td>5</td>
+      <td><strong>localStorage 只做缓存</strong></td>
+      <td><span class="badge badge-green">已确认</span></td>
+      <td>API 模式下（<code>VITE_API_BASE_URL</code> 已配置），localStorage 仅用于：JWT token 存储、用户信息缓存、滚动位置恢复。所有数据源为数据库</td>
+    </tr>
+  </table>
+
+  <h3>额外安全建议</h3>
+  <div class="section">
+    <ul>
+      <li><strong>CORS_ORIGINS：</strong>生产环境仅配置实际域名，移除 localhost</li>
+      <li><strong>HTTPS：</strong>确保后端和前端均通过 HTTPS 提供服务</li>
+      <li><strong>Supabase 连接池：</strong>使用 Supabase 的连接池模式（端口 6543），避免连接数耗尽</li>
+      <li><strong>数据库备份：</strong>在 Supabase Dashboard 开启自动备份</li>
+      <li><strong>密码策略：</strong>员工初始密码由 <code>generateInitialPassword()</code> 生成 8 位随机密码，首次登录后建议修改</li>
+      <li><strong>速率限制：</strong>建议后续在登录接口添加速率限制（当前未实现）</li>
+    </ul>
+  </div>
+
+  <!-- ===== 第七部分：部署步骤 ===== -->
+  <h2>七、部署执行步骤</h2>
+
+  <div class="section">
+    <h3>Step 1：配置 Supabase 数据库</h3>
+    <ol>
+      <li>登录 <a href="https://supabase.com">Supabase Dashboard</a>，创建新项目</li>
+      <li>进入 Settings → Database → Connection string → URI</li>
+      <li>复制连接字符串（格式：<code>postgresql://postgres:[PASSWORD]@db.[PROJECT-REF].supabase.co:5432/postgres</code>）</li>
+      <li>将连接字符串填入 <code>server/.env</code> 的 <code>DATABASE_URL</code></li>
+    </ol>
+  </div>
+
+  <div class="section">
+    <h3>Step 2：配置后端环境变量</h3>
+    <ol>
+      <li>复制 <code>server/.env.example</code> 为 <code>server/.env</code></li>
+      <li>修改以下必填项：
+        <ul>
+          <li><code>DATABASE_URL</code> → Supabase 连接字符串</li>
+          <li><code>JWT_SECRET</code> → 运行 <code>openssl rand -base64 64</code> 生成</li>
+          <li><code>SEED_ADMIN_PASSWORD</code> → 改为强密码</li>
+          <li><code>CORS_ORIGINS</code> → 改为实际前端域名</li>
+        </ul>
+      </li>
+    </ol>
+  </div>
+
+  <div class="section">
+    <h3>Step 3：建表 + 初始化种子数据</h3>
+    <ol>
+      <li><code>cd server</code></li>
+      <li><code>npx prisma db push</code> → 创建 11 张表到 Supabase</li>
+      <li><code>npx prisma generate</code> → 生成 Prisma Client</li>
+      <li><code>npx tsx src/seed.ts</code> → 初始化超级管理员 + 20 道认证题库（v1.0）</li>
+    </ol>
+  </div>
+
+  <div class="section">
+    <h3>Step 4：配置前端环境变量</h3>
+    <ol>
+      <li>在项目根目录创建 <code>.env</code> 文件</li>
+      <li>添加：<code>VITE_API_BASE_URL=https://[your-backend-domain]:4000</code></li>
+      <li>确保 <code>isApiMode()</code> 返回 true</li>
+    </ol>
+  </div>
+
+  <div class="section">
+    <h3>Step 5：启动服务 + 联调验证</h3>
+    <ol>
+      <li>启动后端：<code>cd server && npm run dev</code>（端口 4000）</li>
+      <li>启动前端：<code>npm run dev</code>（端口 5173）</li>
+      <li>访问 <code>http://localhost:5173</code> 测试员工登录</li>
+      <li>访问 <code>http://localhost:5173/#/admin</code> 测试管理员登录</li>
+      <li>创建测试员工 → 员工登录 → 完成关卡 → 认证考试 → 验证数据同步</li>
+    </ol>
+  </div>
+
+  <div class="section">
+    <h3>Step 6：创建测试员工（用于联调）</h3>
+    <p>管理员登录后台后，在员工管理页面创建测试员工：</p>
+    <ul>
+      <li>姓名：测试员工</li>
+      <li>手机号：13800000001</li>
+      <li>系统自动生成初始密码</li>
+      <li>使用该账号登录前端，验证完整学习流程</li>
+    </ul>
+    <p><strong>上线前删除测试员工。</strong></p>
+  </div>
+
+  <h2>八、文件结构总览</h2>
+  <div class="section">
+    <table>
+      <tr><th>路径</th><th>用途</th></tr>
+      <tr><td><code>server/prisma/schema.prisma</code></td><td>数据库 Schema 定义（11 张表）</td></tr>
+      <tr><td><code>server/src/index.ts</code></td><td>Express 应用入口（中间件 + 路由挂载）</td></tr>
+      <tr><td><code>server/src/lib/auth.ts</code></td><td>认证工具（bcrypt + JWT + 密码生成）</td></tr>
+      <tr><td><code>server/src/seed.ts</code></td><td>种子数据初始化（管理员 + 题库）</td></tr>
+      <tr><td><code>server/src/routes/*.ts</code></td><td>9 个路由模块（40 个端点）</td></tr>
+      <tr><td><code>server/.env.example</code></td><td>环境变量模板</td></tr>
+      <tr><td><code>src/lib/api.ts</code></td><td>前端 API 客户端层（唯一入口）</td></tr>
+      <tr><td><code>src/hooks/useLearningProgress.ts</code></td><td>学习进度 Hook（API + 降级模式）</td></tr>
+      <tr><td><code>src/hooks/useCurrentUser.ts</code></td><td>用户身份统一读取入口</td></tr>
+      <tr><td><code>src/admin/store.ts</code></td><td>管理后台数据层（API + 降级模式）</td></tr>
+      <tr><td><code>src/admin/auth.ts</code></td><td>管理员认证（双模式登录）</td></tr>
+      <tr><td><code>src/pages/LoginPage.tsx</code></td><td>员工登录页</td></tr>
+    </table>
+  </div>
+
+</div>
+</body>
+</html>

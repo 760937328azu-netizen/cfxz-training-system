@@ -1,0 +1,38 @@
+[
+  {
+    "viewport": "1440",
+    "passed": true,
+    "badgeBoundary": true,
+    "textBoundary": true,
+    "textOverlaps": [],
+    "foreignCollisions": [],
+    "pathBoundary": true,
+    "noHorizontalScroll": true,
+    "minNodeDistance": 186,
+    "screenshot": "C:\\Users\\HUAWEI\\WorkBuddy\\新的一版培训系统 最后一版了\\screenshot-1440.png"
+  },
+  {
+    "viewport": "1600",
+    "passed": true,
+    "badgeBoundary": true,
+    "textBoundary": true,
+    "textOverlaps": [],
+    "foreignCollisions": [],
+    "pathBoundary": true,
+    "noHorizontalScroll": true,
+    "minNodeDistance": 189,
+    "screenshot": "C:\\Users\\HUAWEI\\WorkBuddy\\新的一版培训系统 最后一版了\\screenshot-1600.png"
+  },
+  {
+    "viewport": "1920",
+    "passed": true,
+    "badgeBoundary": true,
+    "textBoundary": true,
+    "textOverlaps": [],
+    "foreignCollisions": [],
+    "pathBoundary": true,
+    "noHorizontalScroll": true,
+    "minNodeDistance": 189,
+    "screenshot": "C:\\Users\\HUAWEI\\WorkBuddy\\新的一版培训系统 最后一版了\\screenshot-1920.png"
+  }
+]
