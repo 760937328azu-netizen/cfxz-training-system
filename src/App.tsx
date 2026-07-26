@@ -60,13 +60,19 @@ function HomePage({ onNavigate }: { onNavigate: (path: string, intent?: "top" | 
 }
 
 export default function App() {
-  const { route, navigate } = useHashRoute();
+  const { route } = useHashRoute();
 
   // ── Admin routing: short-circuit to AdminApp ──
+  // Must be the only hook call in App so hook counts stay consistent across routes.
   if (route.name === "admin") {
     return <AdminApp />;
   }
 
+  return <MainApp />;
+}
+
+function MainApp() {
+  const { route, navigate } = useHashRoute();
   const active = route.name === "stage" ? "stage" : route.name;
 
   // ── Login gate ──

@@ -340,6 +340,11 @@ body {
   .growth-map-canvas, .growth-map-legend { min-width: 1040px; }
 }
 
+@media (max-width: 639px) {
+  .growth-map-shell { overflow-x: visible; }
+  .growth-map-canvas, .growth-map-legend { min-width: 0; }
+}
+
 .animate-progress-grow {
   animation: progress-grow 0.8s var(--ease-gentle) ease-out forwards;
 }

@@ -106,10 +106,10 @@ export default function XiaoyaoCompanion({ pageTitle: _pageTitle }: XiaoyaoCompa
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-40 flex flex-col items-end gap-3">
+    <div className="fixed bottom-4 right-4 z-40 flex flex-col items-end gap-3 sm:bottom-6 sm:right-6">
       {open && (
         <section
-          className="xiaoyao-companion-panel w-[380px] overflow-hidden rounded-[22px] border border-white/80 bg-white/95 shadow-[0_24px_70px_rgba(64,42,31,.22)] backdrop-blur-xl content-enter"
+          className="xiaoyao-companion-panel w-[calc(100vw-32px)] max-w-[380px] overflow-hidden rounded-[22px] border border-white/80 bg-white/95 shadow-[0_24px_70px_rgba(64,42,31,.22)] backdrop-blur-xl content-enter"
           role="dialog"
           aria-label="员工手册助手"
         >

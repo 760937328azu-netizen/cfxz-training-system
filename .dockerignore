@@ -18,3 +18,24 @@ dist-build*
 dist-tmp*
 .workbuddy
 deploy-railway.sh
+
+# Screenshots and temp files (not needed for production build)
+screenshots
+regression-shots
+stage4-shots
+temp
+verify-output
+verify-foundation
+verify-output-card
+scripts/verify-out
+scripts/__pycache__
+
+# Root-level screenshot/preview PNGs (not production assets)
+screenshot-*.png
+preview-*.png
+phase*.png
+diagnostic-*.png
+foundation-*.png
+culture-review*.png
+DEPLOYMENT-VERIFIED.html
+regression-report.json

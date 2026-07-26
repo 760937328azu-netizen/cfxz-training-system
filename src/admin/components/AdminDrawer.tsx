@@ -25,8 +25,8 @@ export function AdminDrawer({
   return (
     <div className="admin-drawer-overlay fixed inset-0 z-[90] bg-black/20" onClick={onClose}>
       <div
-        className="admin-drawer-panel absolute right-0 top-0 flex h-full flex-col bg-white shadow-xl"
-        style={{ width }}
+        className="admin-drawer-panel absolute right-0 top-0 flex h-full w-full max-w-full flex-col bg-white shadow-xl md:w-[var(--drawer-width)]"
+        style={{ "--drawer-width": `${width}px` } as React.CSSProperties}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
