@@ -296,7 +296,7 @@ const washSeriesDetail: { code: string; icon: typeof ShieldCheck; name: string; 
         special: "它不是只解决「油」，也不是只关注「掉发」。它的产品逻辑是：先关注头皮油脂和清爽状态，再兼顾发根养护与头发丰盈感。新人需要记住：油性头皮相关掉发，重点是「控油 + 防脱」一起考虑。",
         usage: "充分湿润头发和头皮后，取适量产品使用于头皮和发根区域。用指腹轻柔按摩头皮后，再以清水充分冲洗。根据个人头皮出油情况和日常洗发习惯进行清洁，不建议用指甲大力抓挠头皮。",
         note: "它属于「洗 → 防脱固发系列」。不要把它和控油蓬爽型普通清洁产品混为一类。它不仅关注油性头皮，也承担防脱固发方向的产品角色。",
-        image: "/products/7-控油防脱.png",
+        image: "/products/7-控油防脱.jpg",
       },
       {
         name: "固发防脱强韧洗发露",
@@ -304,7 +304,7 @@ const washSeriesDetail: { code: string; icon: typeof ShieldCheck; name: string; 
         fit: ["头皮偏干", "容易紧绷", "容易干痒", "头皮状态较敏感", "发根容易脆弱", "同时伴随掉发困扰"],
         special: "和控油防脱不同，它不会把所有掉发都简单归结为「头皮太油」。它更关注偏干、偏敏感头皮环境下的发根养护与长期固发护理。新人需要记住：控油防脱解决的是偏油方向；固发防脱强韧更偏向滋养和强韧方向。",
         usage: "充分湿润头发和头皮后，取适量产品使用于头皮。用指腹轻柔按摩，再用清水充分冲洗。日常使用时，应根据个人头皮状态选择适合自己的洗护产品，不需要因为「防脱」两个字而同时使用多款同类洗发产品。",
-        image: "/products/6-固发防脱.png",
+        image: "/products/6-固发防脱.jpg",
       },
     ],
   },
@@ -320,7 +320,7 @@ const washSeriesDetail: { code: string; icon: typeof ShieldCheck; name: string; 
         fit: ["中轻度头皮出油", "发根容易油", "发中、发尾却偏干", "发丝容易粗糙或打结", "不希望为了控油把头发越洗越涩"],
         special: "它解决的是很多人都会遇到的矛盾：头皮油，但头发并不一定也需要强力去油。因此它更强调在清洁头皮的同时，也兼顾整体洗后舒适度和发丝状态。",
         usage: "重点清洁头皮区域。冲洗泡沫时，让泡沫自然带过发丝即可，不需要反复大力揉搓发尾。如果发丝本身比较干燥，可在洗发后继续搭配「护」线产品进行护理。",
-        image: "/products/3-控油滋养.png",
+        image: "/products/3-控油滋养.jpg",
       },
       {
         name: "控油蓬爽型",
@@ -328,7 +328,7 @@ const washSeriesDetail: { code: string; icon: typeof ShieldCheck; name: string; 
         fit: ["头皮出油较明显", "发根容易贴头皮", "洗完头后蓬松感维持时间短", "频繁洗头仍容易感觉油腻"],
         special: "它更聚焦「油 + 塌」。有些消费者并没有明显掉发需求，他们首先需要解决的是头皮清爽和发根蓬松问题。",
         usage: "使用时重点清洁容易出油的头皮和发根区域。用指腹充分按摩后彻底冲洗。如果发尾比较干燥，应将头皮清洁和发丝护理分开处理，可在后续搭配护发产品。",
-        image: "/products/1-控油蓬爽.png",
+        image: "/products/1-控油蓬爽.jpg",
       },
       {
         name: "三益菌净屑洗发水 / 衡菌型",
@@ -336,7 +336,7 @@ const washSeriesDetail: { code: string; icon: typeof ShieldCheck; name: string; 
         fit: ["容易出现头屑", "同时伴随头油", "头皮容易发痒", "头皮状态容易反复"],
         special: "它不只是普通意义上的「把头屑洗掉」。它所关注的是头屑出现时背后的头皮环境管理。看到头屑问题时，不能只关注已经掉下来的头屑，也要回到头皮本身去理解问题。",
         usage: "使用时将产品重点作用于头皮。以指腹轻柔按摩后充分冲洗。对于持续、严重或异常的头皮问题，产品护理不能代替专业判断。",
-        image: "/products/2-去屑滋养.png",
+        image: "/products/2-去屑滋养.jpg",
       },
     ],
   },
@@ -352,7 +352,7 @@ const washSeriesDetail: { code: string; icon: typeof ShieldCheck; name: string; 
         fit: ["头皮容易出油", "容易产生头屑", "容易头痒", "关注头皮清爽感和异味问题"],
         special: "它并不是简单地把包装换成「男士款」。它的产品思路是根据男性常见的头皮状态和使用需求，进行更有针对性的头皮护理。",
         usage: "按照正常洗发步骤使用，重点清洁头皮区域。根据个人出油频率和实际头皮状态安排洗发频率。",
-        image: "/products/5-男士.png",
+        image: "/products/5-男士.jpg",
       },
       {
         name: "女士专用",
@@ -360,7 +360,7 @@ const washSeriesDetail: { code: string; icon: typeof ShieldCheck; name: string; 
         fit: ["头皮状态较脆弱", "发丝容易干涩", "头油与头屑", "特殊阶段出现的头皮状态变化", "掉发等复合困扰"],
         special: "它同样不是简单的「女性包装」。重点在于女性的头皮和发丝问题有时会同时出现，因此需要兼顾不同护理需求。",
         usage: "根据个人头皮实际状态进行日常清洁。如果同时存在明显发丝干枯或受损问题，应继续搭配「护」线产品，而不是让洗发产品承担所有修护功能。",
-        image: "/products/4-女士.png",
+        image: "/products/4-女士.jpg",
       },
     ],
   },
@@ -376,7 +376,7 @@ const washSeriesDetail: { code: string; icon: typeof ShieldCheck; name: string; 
         fit: ["头皮容易出油", "发根容易扁塌", "发尾却干枯、毛躁", "有烫染损伤", "容易出现分叉、断裂或发丝状态不佳"],
         special: "它面对的是一种典型的复合状态：上面油，下面干。既要关注头皮清爽，也要考虑已经受损的发丝状态。新人可以记成：偏油头皮 + 烫染受损 → 姜乌方向。",
         usage: "洗发时重点清洁头皮和发根。不要用力反复揉搓已经受损的发尾。洗发后，可以根据发丝损伤情况继续搭配羽肽三相发膜、护发精华油等发丝护理产品。",
-        image: "/products/8-姜乌.png",
+        image: "/products/8-姜乌.jpg",
       },
       {
         name: "参乌洗头水",
@@ -384,7 +384,7 @@ const washSeriesDetail: { code: string; icon: typeof ShieldCheck; name: string; 
         fit: ["头皮容易干燥、紧绷", "发丝枯黄、脆弱", "烫染后发质状态下降", "发尾容易干枯毛躁", "需要更偏滋养方向的洗护体验"],
         special: "它与姜乌的核心区别在于：姜乌更偏向油性头皮的高阶护理；参乌更偏向干性头皮的滋养护理。新人可以记成：偏干头皮 + 烫染受损 → 参乌方向。",
         usage: "正常湿发后使用于头皮和发根，并轻柔按摩。充分冲洗后，可根据发丝受损程度继续搭配发膜、稻米蛋白或护发精华油。",
-        image: "/products/9-参乌.png",
+        image: "/products/9-参乌.jpg",
       },
     ],
   },
@@ -397,7 +397,7 @@ const careProductsDetail: ProductDetail[] = [
     fit: ["烫染后的发丝受损", "干枯", "毛躁", "发丝粗糙", "容易打结", "缺乏顺滑感"],
     special: "相较于日常基础护理，发膜更偏向集中修护。它主要面对的是已经长出来、已经产生损伤的发丝。不要把它理解为头皮防脱产品。",
     usage: "洗发后，将头发多余水分轻轻挤掉。取适量产品均匀涂抹于发中至发尾，特别关注受损较明显的位置。停留适当时间后充分冲洗。原则上避免大量直接涂抹头皮。",
-    image: "/products/29-羽肽三相修护还原发膜.png",
+    image: "/products/29-羽肽三相修护还原发膜.jpg",
   },
   {
     name: "羽肽三相蓬爽修护发膜",
@@ -405,7 +405,7 @@ const careProductsDetail: ProductDetail[] = [
     fit: ["烫染后的发丝受损", "头发容易扁塌", "希望修护同时不加重发丝负担", "发丝偏细软"],
     special: "它同样属于羽肽三相发膜系列，但更侧重在修护的同时维持头发的蓬松感。适合发丝受损但又不喜欢过于滋润、厚重感的人群。",
     usage: "洗发后，将头发多余水分轻轻挤掉。取适量产品均匀涂抹于发中至发尾。停留适当时间后充分冲洗。避免大量直接涂抹头皮。",
-    image: "/products/30-羽肽三相蓬爽修护发膜.png",
+    image: "/products/30-羽肽三相蓬爽修护发膜.jpg",
   },
   {
     name: "羽肽三相水光闪充发膜",
@@ -413,7 +413,7 @@ const careProductsDetail: ProductDetail[] = [
     fit: ["发丝严重干枯", "缺乏光泽", "毛躁明显", "发尾分叉", "需要集中补水与光泽提升"],
     special: "它在羽肽三相发膜系列中更偏向「水光感」方向。面对的是发丝干枯、暗哑且需要更强集中滋养的状态。不要把它和头皮防脱产品混为一类。",
     usage: "洗发后，将头发多余水分轻轻挤掉。取适量产品均匀涂抹于发中至发尾，特别关注受损较明显的位置。停留适当时间后充分冲洗。原则上避免大量直接涂抹头皮。",
-    image: "/products/31-羽肽三相水光闪充发膜.png",
+    image: "/products/31-羽肽三相水光闪充发膜.jpg",
   },
   {
     name: "羽肽三相水光护发精华油（轻蓬型）",
@@ -421,7 +421,7 @@ const careProductsDetail: ProductDetail[] = [
     fit: ["发丝偏细软", "怕油怕塌", "发尾毛躁", "日常需要轻盈顺滑感", "希望护理后仍然蓬松"],
     special: "它属于「轻蓬型」精华油，质地更轻盈清爽，适合细软、易塌发质的日常护理。重点作用在已经长出来的发丝，而不是清洁或防脱头皮。",
     usage: "取少量产品于手掌搓匀后，重点涂抹于发中至发尾，可在吹发前或吹发后使用。少量多次即可，避免一次使用过多，也避免大量直接作用于头皮。",
-    image: "/products/32-羽肽三相水光护发精华油.png",
+    image: "/products/32-羽肽三相水光护发精华油.jpg",
   },
   {
     name: "羽肽三相强韧护发精华油（滋润型）",
@@ -429,7 +429,7 @@ const careProductsDetail: ProductDetail[] = [
     fit: ["染烫后发丝受损", "发质偏干偏粗", "毛躁明显", "发尾干涩打结", "希望更强滋润与顺滑"],
     special: "它属于「滋润型」精华油，质地更滋润，更适合染烫损伤、偏干发质。和轻蓬型是同系列的两种方向，可根据发质干湿与轻重需求选择。",
     usage: "取适量产品于手掌搓匀后，重点涂抹于发中至发尾受损较明显的位置，可在吹发前或吹发后使用。发质越粗越干可适当增加用量，仍需避免大量直接作用于头皮。",
-    image: "/products/32-羽肽三相水光护发精华油.png",
+    image: "/products/32-羽肽三相水光护发精华油.jpg",
   },
   {
     name: "稻米蛋白",
@@ -437,7 +437,7 @@ const careProductsDetail: ProductDetail[] = [
     fit: ["洗发后发丝容易打结", "发尾偏干", "希望改善柔顺度", "希望提升日常发丝触感"],
     special: "稻米蛋白承担的是基础、日常、高频的发丝护理。它与发膜可以处于不同的护理强度和使用场景。稻米蛋白主要护理发丝，不承担头皮防脱产品的角色。",
     usage: "洗发并冲净泡沫后，取适量产品涂抹于发中至发尾。轻柔梳理或按摩发丝后充分冲洗。使用时注意避开头皮。",
-    image: "/products/11-养发乳.png",
+    image: "/products/11-养发乳.jpg",
   },
 ];
 
@@ -447,7 +447,7 @@ const nourishProductDetail: ProductDetail = {
   fit: ["发际线变化", "发缝逐渐明显", "头发看起来较稀疏", "发根较脆弱", "希望在日常洗发之外增加头皮养护"],
   special: "它不是洗发水，也不是护理发尾的护发产品。它在「洗、护、养」体系里的角色非常清楚：洗完以后，进一步养。重点更加聚焦于头皮与发根区域。",
   usage: "按照产品正式使用说明，将适量产品作用于需要护理的头皮区域。可以重点关注发际线、发缝、发根较薄弱区域，使用后用指腹轻柔按摩。不要把它涂抹在发尾，当成护发油使用。",
-  image: "/products/12-防脱精华液.png",
+  image: "/products/12-防脱精华液.jpg",
 };
 
 const faqs = [
@@ -1254,7 +1254,7 @@ export default function ProductStagePage({ onNavigate }: ProductStagePageProps) 
 
             <div className="nourish-v2">
               <div className="nourish-v2-visual">
-                <img src="/products/12-防脱精华液.png" alt="防脱赋活精华水" className="nourish-v2-img" />
+                <img src="/products/12-防脱精华液.jpg" alt="防脱赋活精华水" className="nourish-v2-img" />
               </div>
               <div className="nourish-v2-body">
                 <span className="nourish-v2-tag">不属于洗发系列</span>
