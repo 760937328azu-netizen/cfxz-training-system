@@ -55,9 +55,10 @@ ENV NODE_ENV=production
 ENV PORT=4000
 
 # 健康检查
-HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
   CMD node -e "fetch('http://localhost:'+process.env.PORT+'/api/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"
 
 EXPOSE 4000
 
-CMD ["node", "dist/index.js"]
+# 启动前先同步数据库表结构 + 初始化种子数据（管理员账号+题库），再启动服务
+CMD ["sh", "-c", "npx prisma db push --accept-data-loss && node dist/seed.js && node dist/index.js"]
