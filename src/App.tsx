@@ -10,7 +10,7 @@ import WelcomeArea from "./components/WelcomeArea";
 import XiaoyaoCompanion from "./components/XiaoyaoCompanion";
 import { learningStages } from "./data/learningData";
 import { useHashRoute } from "./hooks/useHashRoute";
-import { useLearningProgress, getCurrentStageId, getStorageKey, useProgressSync } from "./hooks/useLearningProgress";
+import { useLearningProgress, getCurrentStageId, getStageStatuses, getStorageKey, useProgressSync, type StageId } from "./hooks/useLearningProgress";
 import { useCurrentUser, isLoggedIn as checkIsLoggedIn } from "./hooks/useCurrentUser";
 import CertificationPage from "./pages/CertificationPage";
 import CompanyPage from "./pages/CompanyPage";
@@ -85,6 +85,8 @@ function MainApp() {
 
   // API 模式下，登录后自动从后端同步学习进度
   useProgressSync();
+
+  const { progress } = useLearningProgress();
 
   // ── Mobile navigation drawer ──
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -230,6 +232,24 @@ function MainApp() {
       });
     }
   }, [route]);
+
+  // ── Route guard: sequential unlock enforcement ──
+  // Prevent direct URL access to locked stages or certification.
+  useEffect(() => {
+    if (!loggedIn) return;
+    if (route.name === "stage" && route.stageId) {
+      const statuses = getStageStatuses(progress);
+      if (statuses[route.stageId as StageId] === "locked") {
+        navigate("home");
+      }
+    }
+    if (route.name === "certification") {
+      const statuses = getStageStatuses(progress);
+      if (statuses.certification === "locked") {
+        navigate("home");
+      }
+    }
+  }, [route, progress, loggedIn, navigate]);
 
   const pageTitle = route.name === "stage"
     ? learningStages.find((stage) => stage.id === route.stageId)?.title ?? "关卡详情"

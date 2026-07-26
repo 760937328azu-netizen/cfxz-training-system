@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { Check, Lock } from "lucide-react";
 import { useLearningProgress, getStageStatuses, getCompletedCount, type StageId } from "../hooks/useLearningProgress";
 
@@ -121,6 +121,29 @@ export default function GrowthMap({ onStageSelect }: GrowthMapProps) {
     [stageStatuses]
   );
 
+  // ── Locked stage click guard ──
+  // Locked nodes show an inline hint instead of navigating.
+  const [lockedHint, setLockedHint] = useState<string | null>(null);
+  const hintTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleStageSelect = useCallback((stageId: number) => {
+    const stage = displayStages.find((s) => s.id === stageId);
+    if (!stage) return;
+    if (stage.status === "locked") {
+      const stageIndex = STAGE_DEFS.findIndex((s) => s.id === stageId);
+      const prevStage = stageIndex > 0 ? STAGE_DEFS[stageIndex - 1] : null;
+      setLockedHint(prevStage ? `请先完成「${prevStage.title}」后再解锁本关` : "请按顺序完成前面的关卡");
+      if (hintTimerRef.current) clearTimeout(hintTimerRef.current);
+      hintTimerRef.current = setTimeout(() => setLockedHint(null), 3000);
+      return;
+    }
+    onStageSelect?.(stageId);
+  }, [displayStages, onStageSelect]);
+
+  useEffect(() => {
+    return () => { if (hintTimerRef.current) clearTimeout(hintTimerRef.current); };
+  }, []);
+
   const completedNodeCount = useMemo(() => {
     // Count how many consecutive stages from the start are completed
     let count = 0;
@@ -187,9 +210,16 @@ export default function GrowthMap({ onStageSelect }: GrowthMapProps) {
           )}
 
           {width > 0 && displayStages.map((stage, index) => (
-            <StageNode key={stage.id} stage={stage} point={geometry.points[index]} badgeSize={geometry.badgeSize} infoWidth={geometry.infoWidth} index={index} onSelect={onStageSelect} />
+            <StageNode key={stage.id} stage={stage} point={geometry.points[index]} badgeSize={geometry.badgeSize} infoWidth={geometry.infoWidth} index={index} onSelect={handleStageSelect} />
           ))}
         </div>
+
+        {lockedHint && (
+          <div className="growth-map-locked-hint" role="alert">
+            <Lock size={14} />
+            <span>{lockedHint}</span>
+          </div>
+        )}
 
         <div className="growth-map-legend">
           <div className="flex items-center gap-5 text-xs text-text-tertiary">

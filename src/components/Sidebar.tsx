@@ -55,7 +55,7 @@ export default function Sidebar({ active, onNavigate, isOpen, onClose }: Sidebar
             const Icon = item.icon;
             const selected = active === item.id || (item.id === "home" && active === "stage");
             const locked = item.id === "certification" ? !progress.rules.completed : item.locked;
-            return <li key={item.id}><button onClick={() => onNavigate(item.path)} className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-medium transition-all ${selected ? "bg-bg-nav-active text-text-nav-active shadow-[0_1px_2px_rgba(176,69,58,.06)]" : "text-text-nav hover:bg-bg-nav-hover hover:text-text-primary"}`}><Icon size={18} /><span className="flex-1 text-left">{item.label}</span>{locked && <Lock size={12} className="text-text-tertiary/50" />}</button></li>;
+            return <li key={item.id}><button onClick={() => { if (locked) return; onNavigate(item.path); }} className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-medium transition-all ${selected ? "bg-bg-nav-active text-text-nav-active shadow-[0_1px_2px_rgba(176,69,58,.06)]" : "text-text-nav hover:bg-bg-nav-hover hover:text-text-primary"}`}><Icon size={18} /><span className="flex-1 text-left">{item.label}</span>{locked && <Lock size={12} className="text-text-tertiary/50" />}</button></li>;
           })}
         </ul>
 
