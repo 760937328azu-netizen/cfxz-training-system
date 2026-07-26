@@ -26,6 +26,9 @@ import { dashboardRouter } from "./routes/dashboard.routes";
 const app = express();
 const PORT = parseInt(process.env.PORT || "4000", 10);
 
+// 信任反向代理（Railway/Render 等平台使用代理转发）
+app.set("trust proxy", 1);
+
 // ── 安全 & 基础中间件 ──
 app.use(helmet());
 app.use(express.json({ limit: "10mb" }));
