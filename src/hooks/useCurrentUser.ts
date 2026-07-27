@@ -126,6 +126,15 @@ export function getCurrentUserBatchName(): string {
   }
 }
 
+/** 读取当前用户入职日期 */
+export function getCurrentUserEntryDate(): string {
+  try {
+    return window.localStorage.getItem(USER_STORAGE_KEYS.entryDate) || "";
+  } catch {
+    return "";
+  }
+}
+
 // ═══════════════════════════════════════════════
 // 登录状态检查
 // ═══════════════════════════════════════════════
@@ -230,11 +239,12 @@ export function useCurrentUser() {
   const position = getCurrentUserPosition();
   const phone = getCurrentUserPhone();
   const batchName = getCurrentUserBatchName();
+  const entryDate = getCurrentUserEntryDate();
   const firstChar = name.charAt(0);
   const subtitle = department
     ? position
       ? `${department} · ${position}`
       : `${department} · 新员工`
     : "新员工";
-  return { name, department, username, employeeId, position, phone, batchName, firstChar, subtitle };
+  return { name, department, username, employeeId, position, phone, batchName, entryDate, firstChar, subtitle };
 }

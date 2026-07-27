@@ -248,7 +248,7 @@ const FLOOR_ONE_FRAMES = [
     kind: "image" as const,
     image: "/assets/museum/visitor/02-hongyao-women.jpg",
     title: "红瑶长发文化展示区",
-    body: "墙上的一位位红瑶女性，拥有不同的年龄、经历和长发故事。她们让\u201C天下第一长发村\u201D不再只是一个称号，而成为真实可见、仍然延续在生活中的文化。",
+    body: "墙上的一位位红瑶女性，拥有不同的年龄、经历和长发故事。她们让“天下第一长发村”不再只是一个称号，而成为真实可见、仍然延续在生活中的文化。",
   },
   {
     kind: "image" as const,
@@ -581,7 +581,7 @@ function MuseumVisit({ done, onReady, onComplete, onNavigate }: {
         <div className={`museum-entrance-copy${phase === "cover" ? "" : " is-hidden"}`}>
           <p className="culture-kicker">中国长发科技馆</p>
           <h2 className="zh-title" data-typography-check>中国长发科技馆</h2>
-          <p className="zh-body" data-typography-check>一座从\u201C长发\u201D出发，连接文化、传统智慧与现代研究的科技馆。</p>
+          <p className="zh-body" data-typography-check>一座从&ldquo;长发&rdquo;出发，连接文化、传统智慧与现代研究的科技馆。</p>
         </div>
         <div className={`museum-entry-media${phase === "entered" ? " is-leaving" : ""}`}>
           <img
@@ -684,7 +684,7 @@ function MuseumVisit({ done, onReady, onComplete, onNavigate }: {
         <div className="museum-act-inner">
           <p className="culture-kicker">二楼展区</p>
           <h2 className="zh-title" data-typography-check>当传统智慧走进现代研究</h2>
-          <blockquote className="zh-body museum-act-quote" data-typography-check>传统告诉我们\u201C人们长期在使用什么\u201D，科学继续研究\u201C它为什么可能有效\u201D。</blockquote>
+          <blockquote className="zh-body museum-act-quote" data-typography-check>传统告诉我们&ldquo;人们长期在使用什么&rdquo;，科学继续研究&ldquo;它为什么可能有效&rdquo;。</blockquote>
         </div>
       </section>
 

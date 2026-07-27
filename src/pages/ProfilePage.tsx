@@ -1,14 +1,27 @@
 import { BriefcaseBusiness, Building2, CalendarDays, User } from "lucide-react";
 import { useCurrentUser } from "../hooks/useCurrentUser";
 
+function formatEntryDay(entryDate: string): string {
+  if (!entryDate) return "待完善";
+  const start = new Date(entryDate);
+  const now = new Date();
+  // 按本地时间计算两个日期的天数差，忽略时分秒
+  const startLocal = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+  const nowLocal = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const diffMs = nowLocal.getTime() - startLocal.getTime();
+  const days = Math.floor(diffMs / (1000 * 60 * 60 * 24)) + 1;
+  const dateText = `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, "0")}-${String(start.getDate()).padStart(2, "0")}`;
+  return `${dateText}（入职第 ${days} 天）`;
+}
+
 export default function ProfilePage() {
-  const { name: userName, department: userDept, firstChar, subtitle: deptSubtitle } = useCurrentUser();
+  const { name: userName, department: userDept, position: userPosition, entryDate, firstChar, subtitle: deptSubtitle } = useCurrentUser();
 
   const fields = [
     [User, "员工身份", "新员工"],
     [Building2, "所属部门", userDept || "未设置"],
-    [BriefcaseBusiness, "当前岗位", "待与员工系统同步"],
-    [CalendarDays, "入职时间", "入职第 12 天"],
+    [BriefcaseBusiness, "当前岗位", userPosition || "待完善"],
+    [CalendarDays, "入职时间", formatEntryDay(entryDate)],
   ];
 
   return (
