@@ -8,6 +8,7 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
+import compression from "compression";
 
 import path from "path";
 import fs from "fs";
@@ -31,6 +32,8 @@ app.set("trust proxy", 1);
 
 // ── 安全 & 基础中间件 ──
 app.use(helmet());
+// gzip 压缩：JS 708KB → ~216KB, CSS 202KB → ~30KB，大幅减少传输体积
+app.use(compression());
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 
@@ -111,7 +114,23 @@ app.use("/api/integrations/moka/webhooks/employee-onboard", (req, res, next) => 
 // ── 生产环境：托管前端静态文件 ──
 const staticDir = path.join(__dirname, "..", "public");
 if (fs.existsSync(staticDir)) {
-  app.use(express.static(staticDir));
+  // 带 hash 的静态资源（/assets/*.js, *.css）长期缓存
+  // index.html 不缓存，确保用户始终拿到最新版本入口
+  app.use(
+    express.static(staticDir, {
+      setHeaders: (res, filePath) => {
+        if (filePath.endsWith(".html")) {
+          res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+        } else if (filePath.includes(path.sep + "assets" + path.sep) || filePath.endsWith(".js") || filePath.endsWith(".css")) {
+          // Vite 构建产物带 hash，可安全长期缓存
+          res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+        } else {
+          // 图片/视频/字体等，缓存 1 天
+          res.setHeader("Cache-Control", "public, max-age=86400");
+        }
+      },
+    }),
+  );
   // SPA 回退：所有非 API 路由返回 index.html
   app.get("*", (req, res, next) => {
     if (req.path.startsWith("/api/")) return next();

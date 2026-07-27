@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Lock, Phone } from "lucide-react";
 import { USER_STORAGE_KEYS, saveCurrentUser } from "../hooks/useCurrentUser";
 import { isApiMode, authApi, setEmployeeToken, ApiError } from "../lib/api";
@@ -40,6 +40,13 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  // 延迟加载背景视频：先渲染登录表单，1.5s 后再加载 3.8MB 视频，避免首屏卡顿
+  const [showVideo, setShowVideo] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setShowVideo(true), 1500);
+    return () => clearTimeout(timer);
+  }, []);
 
   /**
    * API 模式登录：调用后端 POST /api/auth/employee/login
@@ -146,17 +153,19 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
 
   return (
     <div className="login-page">
-      {/* Background video */}
-      <video
-        className="login-page__video"
-        autoPlay
-        muted
-        loop
-        playsInline
-        poster="/assets/login-bg-poster.jpg"
-      >
-        <source src="/assets/login-bg.mp4" type="video/mp4" />
-      </video>
+      {/* Background video — 延迟加载，避免阻塞首屏渲染 */}
+      {showVideo && (
+        <video
+          className="login-page__video"
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="metadata"
+        >
+          <source src="/assets/login-bg.mp4" type="video/mp4" />
+        </video>
+      )}
 
       {/* Dark overlay */}
       <div className="login-page__overlay" aria-hidden="true" />
