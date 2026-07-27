@@ -20,6 +20,7 @@ import {
 import { AdminTable } from "../components/AdminTable";
 import type { Column } from "../components/AdminTable";
 import { ConfirmModal } from "../components/ConfirmModal";
+import { showToast } from "../components/Toast";
 
 export function SettingsPage() {
   const store = useAdminStore();
@@ -31,7 +32,7 @@ export function SettingsPage() {
   const [confirmAction, setConfirmAction] = useState<{
     title: string;
     description: string;
-    onConfirm: () => void;
+    onConfirm: () => void | Promise<void>;
   } | null>(null);
 
   const handleAddNew = useCallback(() => {
@@ -52,7 +53,7 @@ export function SettingsPage() {
       description: `确认${newStatus === "disabled" ? "停用" : "启用"}管理员「${adminAcc.name}」？`,
       onConfirm: async () => {
         if (isApiMode()) {
-          await apiUpdateAdmin(adminAcc.id, { status: newStatus }).catch(() => {});
+          await apiUpdateAdmin(adminAcc.id, { status: newStatus });
         } else {
           updateAdmin(adminAcc.id, { status: newStatus });
           logAdminAction({
@@ -63,6 +64,7 @@ export function SettingsPage() {
             targetName: adminAcc.name,
           });
         }
+        showToast(`已${newStatus === "disabled" ? "停用" : "启用"}管理员 ${adminAcc.name}`, "success");
         setConfirmAction(null);
       },
     });
@@ -75,7 +77,7 @@ export function SettingsPage() {
       description: `确认删除管理员「${adminAcc.name}」？此操作不可撤销。`,
       onConfirm: async () => {
         if (isApiMode()) {
-          await apiDeleteAdmin(adminAcc.id).catch(() => {});
+          await apiDeleteAdmin(adminAcc.id);
         } else {
           deleteAdmin(adminAcc.id);
           logAdminAction({
@@ -86,6 +88,7 @@ export function SettingsPage() {
             targetName: adminAcc.name,
           });
         }
+        showToast(`已删除管理员 ${adminAcc.name}`, "success");
         setConfirmAction(null);
       },
     });
@@ -99,7 +102,7 @@ export function SettingsPage() {
       onConfirm: async () => {
         if (isApiMode()) {
           // API 模式：后端处理密码重置，前端不传明文密码
-          await apiUpdateAdmin(adminAcc.id, { resetPassword: true }).catch(() => {});
+          await apiUpdateAdmin(adminAcc.id, { resetPassword: true });
         } else {
           updateAdmin(adminAcc.id, { passwordHash: hashPassword("admin123") });
           logAdminAction({
@@ -110,6 +113,7 @@ export function SettingsPage() {
             targetName: adminAcc.name,
           });
         }
+        showToast(`已重置管理员 ${adminAcc.name} 的密码`, "success");
         setConfirmAction(null);
       },
     });
@@ -257,7 +261,7 @@ export function SettingsPage() {
                   username: data.username,
                   role: data.role,
                   ...(data.password ? { password: data.password } : {}),
-                }).catch(() => {});
+                });
               } else {
                 updateAdmin(editingAdmin.id, {
                   name: data.name,
@@ -275,9 +279,10 @@ export function SettingsPage() {
                   });
                 }
               }
+              showToast(`已更新管理员 ${data.name}`, "success");
             } else {
               if (isApiMode()) {
-                await apiCreateAdmin(data).catch(() => {});
+                await apiCreateAdmin(data);
               } else {
                 createAdmin(data);
                 if (currentAdmin) {
@@ -290,6 +295,7 @@ export function SettingsPage() {
                   });
                 }
               }
+              showToast(`已创建管理员 ${data.name}`, "success");
             }
             setShowFormModal(false);
             setEditingAdmin(null);
@@ -321,7 +327,7 @@ function AdminFormModal({
 }: {
   adminAcc: AdminAccount | null;
   onClose: () => void;
-  onSave: (data: { name: string; username: string; password: string; role: AdminRole }) => void;
+  onSave: (data: { name: string; username: string; password: string; role: AdminRole }) => void | Promise<void>;
 }) {
   const [name, setName] = useState(adminAcc?.name ?? "");
   const [username, setUsername] = useState(adminAcc?.username ?? "");
@@ -329,14 +335,14 @@ function AdminFormModal({
   const [role, setRole] = useState<AdminRole>(adminAcc?.role ?? "viewer");
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const errs: Record<string, string> = {};
     if (!name.trim()) errs.name = "请输入姓名";
     if (!username.trim()) errs.username = "请输入登录账号";
     if (!adminAcc && !password.trim()) errs.password = "请输入密码";
     setErrors(errs);
     if (Object.keys(errs).length > 0) return;
-    onSave({ name: name.trim(), username: username.trim(), password, role });
+    await onSave({ name: name.trim(), username: username.trim(), password, role });
   };
 
   return (

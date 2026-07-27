@@ -16,6 +16,7 @@ import { AdminTable } from "../components/AdminTable";
 import type { Column } from "../components/AdminTable";
 import { AdminDrawer, InfoRow, InfoSection } from "../components/AdminDrawer";
 import { ConfirmModal } from "../components/ConfirmModal";
+import { showToast } from "../components/Toast";
 
 export function CertificationPage() {
   const store = useAdminStore();
@@ -60,7 +61,7 @@ export function CertificationPage() {
   const handleResetCert = useCallback(async () => {
     if (!selectedEmp || !admin) return;
     if (isApiMode()) {
-      await apiResetEmployeeCertification(selectedEmp, admin.name).catch(() => {});
+      await apiResetEmployeeCertification(selectedEmp, admin.name);
     } else {
       resetEmployeeCertification(selectedEmp, admin.name);
       logAdminAction({
@@ -71,6 +72,7 @@ export function CertificationPage() {
         targetName: selectedEmp.name,
       });
     }
+    showToast(`已重置 ${selectedEmp.name} 的认证记录`, "success");
     setConfirmReset(false);
     setSelectedEmp({ ...selectedEmp });
   }, [selectedEmp, admin]);

@@ -1,10 +1,14 @@
 /**
  * 管理后台 — 确认弹窗
  * 用于危险操作（重置进度、删除员工、停用账号等）的二次确认
+ *
+ * 支持 async onConfirm：操作进行中显示 loading 状态，防止重复点击。
+ * 操作失败时自动捕获错误并显示 Toast，弹窗保持打开。
  */
 
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { Button } from "./UI";
+import { showToast, getErrorMessage } from "./Toast";
 
 export function ConfirmModal({
   open,
@@ -23,16 +27,31 @@ export function ConfirmModal({
   confirmLabel?: string;
   cancelLabel?: string;
   variant?: "danger" | "primary";
-  onConfirm: () => void;
+  onConfirm: () => void | Promise<void>;
   onCancel: () => void;
   children?: ReactNode;
 }) {
+  const [loading, setLoading] = useState(false);
+
   if (!open) return null;
+
+  const handleConfirm = async () => {
+    if (loading) return;
+    setLoading(true);
+    try {
+      await onConfirm();
+      // onConfirm 成功后会自行关闭弹窗（调用方 setXxx(null)）
+    } catch (err) {
+      showToast(getErrorMessage(err), "error");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div
       className="admin-modal-overlay fixed inset-0 z-[100] flex items-center justify-center bg-black/30"
-      onClick={onCancel}
+      onClick={loading ? undefined : onCancel}
     >
       <div
         className="admin-modal-panel mx-4 w-full max-w-md rounded-2xl bg-white p-6 shadow-xl"
@@ -53,11 +72,15 @@ export function ConfirmModal({
           </div>
         </div>
         <div className="mt-6 flex justify-end gap-2">
-          <Button variant="secondary" onClick={onCancel}>
+          <Button variant="secondary" onClick={onCancel} disabled={loading}>
             {cancelLabel}
           </Button>
-          <Button variant={variant === "danger" ? "danger" : "primary"} onClick={onConfirm}>
-            {confirmLabel}
+          <Button
+            variant={variant === "danger" ? "danger" : "primary"}
+            onClick={handleConfirm}
+            disabled={loading}
+          >
+            {loading ? "处理中..." : confirmLabel}
           </Button>
         </div>
       </div>

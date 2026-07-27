@@ -22,6 +22,22 @@ export function isApiMode(): boolean {
   return API_BASE_URL.length > 0;
 }
 
+/**
+ * 生产环境防护：如果运行在生产构建中但 VITE_API_BASE_URL 未配置，
+ * 说明构建时环境变量丢失（常见于 Docker 构建未注入 ENV）。
+ * 此时前端会静默降级到 localStorage 模式，导致数据只存在浏览器中，
+ * 其他设备无法访问。发出醒目警告以便排查。
+ */
+if (import.meta.env.PROD && API_BASE_URL.length === 0) {
+  console.error(
+    "%c⚠️ 生产环境警告：VITE_API_BASE_URL 未配置！\n" +
+    "前端已降级到 localStorage 模式，所有数据仅存储在当前浏览器中。\n" +
+    "其他设备/用户无法访问这些数据，登录认证也不是真实的。\n" +
+    "请检查 Docker 构建时是否注入了 ENV VITE_API_BASE_URL=/api",
+    "color: #dc2626; font-size: 14px; font-weight: bold;"
+  );
+}
+
 /** 获取 API 基础 URL（供调试用） */
 export function getApiBaseUrl(): string {
   return API_BASE_URL;

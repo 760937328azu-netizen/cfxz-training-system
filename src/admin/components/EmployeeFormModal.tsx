@@ -16,7 +16,7 @@ export function EmployeeFormModal({
   employee: Employee | null;
   batches: Batch[];
   onClose: () => void;
-  onSave: (data: Omit<Employee, "id" | "createdAt" | "status"> & { status?: Employee["status"] }) => void;
+  onSave: (data: Omit<Employee, "id" | "createdAt" | "status"> & { status?: Employee["status"] }) => void | Promise<void>;
 }) {
   const [form, setForm] = useState({
     name: "",
@@ -59,9 +59,9 @@ export function EmployeeFormModal({
     return Object.keys(errs).length === 0;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!validate()) return;
-    onSave({
+    await onSave({
       name: form.name.trim(),
       employeeNo: form.employeeNo.trim(),
       username: form.phone.trim(), // 登录账号默认使用手机号

@@ -24,6 +24,7 @@ import { useAdminAuth, canEdit } from "../auth";
 import { ensureStoreInitialized, isStoreInitialized, useAdminDataSync } from "../store";
 import { createSeedData } from "../seed";
 import { isApiMode } from "../../lib/api";
+import { Toaster } from "./Toast";
 import "../admin.css";
 
 export type AdminPageId =
@@ -143,6 +144,9 @@ export function AdminShell({
           </div>
         </main>
       </div>
+
+      {/* Toast 通知 */}
+      <Toaster />
     </div>
   );
 }

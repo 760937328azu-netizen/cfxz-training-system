@@ -10,6 +10,10 @@ WORKDIR /app/frontend
 COPY package*.json ./
 RUN npm ci
 COPY . .
+
+# 显式注入前端 API 地址（同源 /api），确保生产构建中 isApiMode() 返回 true
+# 不依赖 .env.production 文件（可能被 .gitignore 排除导致 Railway 拉取时缺失）
+ENV VITE_API_BASE_URL=/api
 RUN npm run build
 
 # ---- Stage 2: 构建后端 ----

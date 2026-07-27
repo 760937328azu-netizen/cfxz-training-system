@@ -23,6 +23,7 @@ import { AdminTable } from "../components/AdminTable";
 import type { Column } from "../components/AdminTable";
 import { AdminDrawer, InfoRow, InfoSection } from "../components/AdminDrawer";
 import { ConfirmModal } from "../components/ConfirmModal";
+import { showToast } from "../components/Toast";
 
 export function BatchesPage() {
   const store = useAdminStore();
@@ -35,7 +36,7 @@ export function BatchesPage() {
   const [confirmAction, setConfirmAction] = useState<{
     title: string;
     description: string;
-    onConfirm: () => void;
+    onConfirm: () => void | Promise<void>;
   } | null>(null);
 
   // 批次内的员工列表
@@ -82,7 +83,7 @@ export function BatchesPage() {
 
   const handleCreate = useCallback(async (name: string, startDate: string, deadline: string) => {
     if (isApiMode()) {
-      await apiCreateBatch({ name, startDate, deadline }).catch(() => {});
+      await apiCreateBatch({ name, startDate, deadline });
     } else {
       createBatch({ name, startDate, deadline });
       if (admin) {
@@ -95,6 +96,7 @@ export function BatchesPage() {
         });
       }
     }
+    showToast(`已创建批次「${name}」`, "success");
     setShowCreateModal(false);
   }, [admin]);
 
@@ -105,7 +107,7 @@ export function BatchesPage() {
       description: `确认关闭批次「${batch.name}」？关闭后该批次内的新人进度仍保留，但不再进行超期计算。`,
       onConfirm: async () => {
         if (isApiMode()) {
-          await apiUpdateBatch(batch.id, { status: "closed" }).catch(() => {});
+          await apiUpdateBatch(batch.id, { status: "closed" });
         } else {
           updateBatch(batch.id, { status: "closed" });
           logAdminAction({
@@ -116,6 +118,7 @@ export function BatchesPage() {
             targetName: batch.name,
           });
         }
+        showToast(`已关闭批次「${batch.name}」`, "success");
         setConfirmAction(null);
         setSelectedBatch(null);
       },
@@ -129,7 +132,7 @@ export function BatchesPage() {
       description: `确认删除批次「${batch.name}」？该批次内的新人将变为未分配状态。此操作不可撤销。`,
       onConfirm: async () => {
         if (isApiMode()) {
-          await apiDeleteBatch(batch.id).catch(() => {});
+          await apiDeleteBatch(batch.id);
         } else {
           deleteBatch(batch.id);
           logAdminAction({
@@ -140,6 +143,7 @@ export function BatchesPage() {
             targetName: batch.name,
           });
         }
+        showToast(`已删除批次「${batch.name}」`, "success");
         setConfirmAction(null);
         setSelectedBatch(null);
       },
@@ -149,7 +153,7 @@ export function BatchesPage() {
   const handleAddEmployee = useCallback(async (emp: Employee) => {
     if (!selectedBatch || !admin) return;
     if (isApiMode()) {
-      await apiAddEmployeeToBatch(selectedBatch.id, emp.id).catch(() => {});
+      await apiAddEmployeeToBatch(selectedBatch.id, emp.id);
     } else {
       addEmployeeToBatch(selectedBatch.id, emp.id);
       logAdminAction({
@@ -160,6 +164,7 @@ export function BatchesPage() {
         targetName: selectedBatch.name,
       });
     }
+    showToast(`已将 ${emp.name} 添加到批次`, "success");
     // 刷新选中批次
     const updated = store.batches.find((b) => b.id === selectedBatch.id);
     if (updated) setSelectedBatch({ ...updated });
@@ -172,7 +177,7 @@ export function BatchesPage() {
       description: `确认将 ${emp.name} 从批次「${selectedBatch.name}」中移出？`,
       onConfirm: async () => {
         if (isApiMode()) {
-          await apiRemoveEmployeeFromBatch(selectedBatch.id, emp.id).catch(() => {});
+          await apiRemoveEmployeeFromBatch(selectedBatch.id, emp.id);
         } else {
           removeEmployeeFromBatch(selectedBatch.id, emp.id);
           logAdminAction({
@@ -183,6 +188,7 @@ export function BatchesPage() {
             targetName: selectedBatch.name,
           });
         }
+        showToast(`已将 ${emp.name} 移出批次`, "success");
         setConfirmAction(null);
         const updated = store.batches.find((b) => b.id === selectedBatch.id);
         if (updated) setSelectedBatch({ ...updated });
@@ -378,17 +384,17 @@ function CreateBatchModal({
   onCreate,
 }: {
   onClose: () => void;
-  onCreate: (name: string, startDate: string, deadline: string) => void;
+  onCreate: (name: string, startDate: string, deadline: string) => void | Promise<void>;
 }) {
   const [name, setName] = useState("");
   const [startDate, setStartDate] = useState(new Date().toISOString().slice(0, 10));
   const [deadline, setDeadline] = useState("");
   const [error, setError] = useState("");
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!name.trim()) { setError("请输入批次名称"); return; }
     if (!deadline) { setError("请选择完成期限"); return; }
-    onCreate(name.trim(), startDate, deadline);
+    await onCreate(name.trim(), startDate, deadline);
   };
 
   return (
@@ -439,14 +445,29 @@ function AddEmployeeModal({
   employees: Employee[];
   batchName: string;
   onClose: () => void;
-  onAdd: (emp: Employee) => void;
+  onAdd: (emp: Employee) => void | Promise<void>;
 }) {
   const [search, setSearch] = useState("");
+  const [adding, setAdding] = useState<string | null>(null);
   const filtered = employees.filter((e) => {
     if (!search) return true;
     const q = search.toLowerCase();
     return e.name.toLowerCase().includes(q) || e.employeeNo.toLowerCase().includes(q);
   });
+
+  const handleAdd = async (emp: Employee) => {
+    setAdding(emp.id);
+    try {
+      await onAdd(emp);
+    } catch (err) {
+      showToast(
+        err instanceof Error ? err.message : "添加失败，请重试",
+        "error"
+      );
+    } finally {
+      setAdding(null);
+    }
+  };
 
   return (
     <ConfirmModal
@@ -478,8 +499,8 @@ function AddEmployeeModal({
                   <span className="text-sm font-medium text-stone-700">{emp.name}</span>
                   <span className="ml-2 text-xs text-stone-400">{emp.department}</span>
                 </div>
-                <Button size="sm" variant="primary" onClick={() => onAdd(emp)}>
-                  <Plus size={14} /> 添加
+                <Button size="sm" variant="primary" onClick={() => handleAdd(emp)} disabled={adding === emp.id}>
+                  {adding === emp.id ? "添加中..." : <><Plus size={14} /> 添加</>}
                 </Button>
               </div>
             ))}

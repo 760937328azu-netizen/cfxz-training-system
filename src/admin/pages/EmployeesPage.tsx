@@ -29,6 +29,7 @@ import type { Column } from "../components/AdminTable";
 import { AdminDrawer, InfoRow, InfoSection } from "../components/AdminDrawer";
 import { ConfirmModal } from "../components/ConfirmModal";
 import { EmployeeFormModal } from "../components/EmployeeFormModal";
+import { showToast } from "../components/Toast";
 
 export function EmployeesPage() {
   const store = useAdminStore();
@@ -45,7 +46,7 @@ export function EmployeesPage() {
     title: string;
     description: string;
     confirmLabel?: string;
-    onConfirm: () => void;
+    onConfirm: () => void | Promise<void>;
   } | null>(null);
 
   // API 模式：挂载时批量拉取员工进度
@@ -102,10 +103,11 @@ export function EmployeesPage() {
       description: `确认重置 ${emp.name} 的该关进度？该操作不可撤销。`,
       onConfirm: async () => {
         if (isApiMode()) {
-          await apiResetEmployeeStage(emp, stageId, admin.name).catch(() => {});
+          await apiResetEmployeeStage(emp, stageId, admin.name);
         } else {
           resetEmployeeStage(emp, stageId, admin.name);
         }
+        showToast(`已重置 ${emp.name} 的该关进度`, "success");
         setConfirmAction(null);
         setSelectedEmp({ ...emp });
       },
@@ -119,10 +121,11 @@ export function EmployeesPage() {
       description: `确认重置 ${emp.name} 的所有学习进度？包括六关完成状态、游戏记录、认证记录。该操作不可撤销。`,
       onConfirm: async () => {
         if (isApiMode()) {
-          await apiResetEmployeeAllProgress(emp, admin.name).catch(() => {});
+          await apiResetEmployeeAllProgress(emp, admin.name);
         } else {
           resetEmployeeAllProgress(emp, admin.name);
         }
+        showToast(`已重置 ${emp.name} 的全部进度`, "success");
         setConfirmAction(null);
         setSelectedEmp({ ...emp });
       },
@@ -136,10 +139,11 @@ export function EmployeesPage() {
       description: `确认重置 ${emp.name} 的认证记录？认证次数归零，可重新参加认证。该操作不可撤销。`,
       onConfirm: async () => {
         if (isApiMode()) {
-          await apiResetEmployeeCertification(emp, admin.name).catch(() => {});
+          await apiResetEmployeeCertification(emp, admin.name);
         } else {
           resetEmployeeCertification(emp, admin.name);
         }
+        showToast(`已重置 ${emp.name} 的认证记录`, "success");
         setConfirmAction(null);
         setSelectedEmp({ ...emp });
       },
@@ -154,7 +158,7 @@ export function EmployeesPage() {
       description: `确认${newStatus === "disabled" ? "停用" : "启用"} ${emp.name} 的账号？`,
       onConfirm: async () => {
         if (isApiMode()) {
-          await apiUpdateEmployee(emp.id, { status: newStatus }).catch(() => {});
+          await apiUpdateEmployee(emp.id, { status: newStatus });
         } else {
           updateEmployee(emp.id, { status: newStatus });
           logAdminAction({
@@ -165,6 +169,7 @@ export function EmployeesPage() {
             targetName: emp.name,
           });
         }
+        showToast(`已${newStatus === "disabled" ? "停用" : "启用"} ${emp.name} 的账号`, "success");
         setConfirmAction(null);
       },
     });
@@ -177,7 +182,7 @@ export function EmployeesPage() {
       description: `确认删除 ${emp.name}？该操作将同时删除其所有学习进度和记录，不可撤销。`,
       onConfirm: async () => {
         if (isApiMode()) {
-          await apiDeleteEmployee(emp.id).catch(() => {});
+          await apiDeleteEmployee(emp.id);
         } else {
           deleteEmployee(emp.id);
           logAdminAction({
@@ -188,6 +193,7 @@ export function EmployeesPage() {
             targetName: emp.name,
           });
         }
+        showToast(`已删除员工 ${emp.name}`, "success");
         setConfirmAction(null);
         setSelectedEmp(null);
       },
@@ -199,7 +205,14 @@ export function EmployeesPage() {
     setConfirmAction({
       title: "重置密码",
       description: `确认将 ${emp.name} 的密码重置为初始密码「${emp.initialPassword}」？`,
-      onConfirm: () => {
+      onConfirm: async () => {
+        if (isApiMode()) {
+          // API 模式：调用后端真正重置密码
+          // apiUpdateEmployee 会将 initialPassword 映射为 resetPassword 发送给后端
+          await apiUpdateEmployee(emp.id, { initialPassword: emp.initialPassword });
+        } else {
+          // localStorage 模式：密码记录在 Employee 对象上，无需额外操作
+        }
         logAdminAction({
           adminName: admin.name,
           action: "重置员工密码",
@@ -207,6 +220,7 @@ export function EmployeesPage() {
           targetId: emp.id,
           targetName: emp.name,
         });
+        showToast(`已将 ${emp.name} 的密码重置为初始密码`, "success");
         setConfirmAction(null);
       },
     });
@@ -230,7 +244,7 @@ export function EmployeesPage() {
       confirmLabel: "我已确认，清空全部",
       onConfirm: async () => {
         if (isApiMode()) {
-          await apiClearAllEmployees().catch(() => {});
+          await apiClearAllEmployees();
         } else {
           const result = clearAllEmployees();
           logAdminAction({
@@ -242,6 +256,7 @@ export function EmployeesPage() {
             details: `共删除 ${result.deletedCount} 名员工及其个人进度记录`,
           });
         }
+        showToast("已清空全部员工数据", "success");
         setConfirmAction(null);
         setSelectedEmp(null);
       },
@@ -343,7 +358,7 @@ export function EmployeesPage() {
       onConfirm: async () => {
         if (isApiMode()) {
           for (const emp of filtered) {
-            await apiDeleteEmployee(emp.id).catch(() => {});
+            await apiDeleteEmployee(emp.id);
           }
         } else {
           for (const emp of filtered) {
@@ -358,6 +373,7 @@ export function EmployeesPage() {
             details: `筛选条件：搜索=${search || "无"}，批次=${batchFilter || "全部"}，状态=${statusFilter || "全部"}`,
           });
         }
+        showToast(`已删除 ${filtered.length} 名员工`, "success");
         setConfirmAction(null);
         setSelectedEmp(null);
       },
@@ -496,7 +512,7 @@ export function EmployeesPage() {
           onSave={async (data) => {
             if (editingEmp) {
               if (isApiMode()) {
-                await apiUpdateEmployee(editingEmp.id, data).catch(() => {});
+                await apiUpdateEmployee(editingEmp.id, data);
               } else {
                 updateEmployee(editingEmp.id, data);
                 if (admin) {
@@ -509,9 +525,10 @@ export function EmployeesPage() {
                   });
                 }
               }
+              showToast(`已更新 ${data.name} 的信息`, "success");
             } else {
               if (isApiMode()) {
-                await apiCreateEmployee(data).catch(() => {});
+                await apiCreateEmployee(data);
               } else {
                 createEmployee(data);
                 if (admin) {
@@ -524,6 +541,7 @@ export function EmployeesPage() {
                   });
                 }
               }
+              showToast(`已创建员工 ${data.name}`, "success");
             }
             setShowFormModal(false);
             setEditingEmp(null);
