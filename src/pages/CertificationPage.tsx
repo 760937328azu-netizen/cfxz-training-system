@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   ArrowLeft,
   ArrowRight,
@@ -21,7 +21,12 @@ import {
   KNOWLEDGE_AREAS,
   type CertificationQuestion,
 } from "../data/certificationData";
-import { useLearningProgress } from "../hooks/useLearningProgress";
+import {
+  fetchCertificationQuestions,
+  submitCertificationViaApi,
+  useLearningProgress,
+} from "../hooks/useLearningProgress";
+import { isApiMode } from "../lib/api";
 
 type ViewState = "gate" | "exam" | "result" | "review" | "certificate";
 
@@ -84,6 +89,16 @@ export default function CertificationPage({ onNavigate }: CertificationPageProps
   const [currentIndex, setCurrentIndex] = useState(0);
   const [score, setScore] = useState(0);
   const [weakAreas, setWeakAreas] = useState<string[]>([]);
+  const [questionVersion, setQuestionVersion] = useState<string>("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // API 模式下预取题库版本，用于提交认证时与后端对齐
+  useEffect(() => {
+    if (!isApiMode()) return;
+    fetchCertificationQuestions()
+      .then((res) => setQuestionVersion(res.version))
+      .catch(() => {});
+  }, []);
 
   const gameCount = Object.values(progress.rules.rulesGamesCompleted).filter(Boolean).length;
   const canTakeExam = unlocked && progress.certification.attempts < MAX_ATTEMPTS;
@@ -113,7 +128,8 @@ export default function CertificationPage({ onNavigate }: CertificationPageProps
     setView("exam");
   };
 
-  const submitExam = () => {
+  const submitExam = async () => {
+    if (isSubmitting) return;
     const s = examScore;
 
     // Compute weak areas from wrong questions
@@ -133,7 +149,27 @@ export default function CertificationPage({ onNavigate }: CertificationPageProps
 
     setScore(s);
     setWeakAreas(weak);
-    submitCertificationAttempt(s, answers, weak);
+
+    // API 模式下同步提交到后端，确保后台统计、学习天地解锁、认证关卡状态一致
+    if (isApiMode() && questionVersion) {
+      setIsSubmitting(true);
+      try {
+        const apiAnswers = CERTIFICATION_QUESTIONS.map((q, i) => ({
+          questionId: q.id,
+          selectedOption: answers[i],
+        }));
+        const result = await submitCertificationViaApi(questionVersion, apiAnswers);
+        submitCertificationAttempt(result.score, answers, result.weakAreas?.map((wa: string) => KNOWLEDGE_AREAS[wa as keyof typeof KNOWLEDGE_AREAS] || wa) ?? weak);
+      } catch {
+        // 后端提交失败时仍用本地评分保证 UI 可用
+        submitCertificationAttempt(s, answers, weak);
+      } finally {
+        setIsSubmitting(false);
+      }
+    } else {
+      submitCertificationAttempt(s, answers, weak);
+    }
+
     setView("result");
   };
 
