@@ -8,8 +8,6 @@ server/public
 *.log
 .env
 server/.env
-.env.production
-server/.env.production
 *.local
 nul
 cert-test-shots
